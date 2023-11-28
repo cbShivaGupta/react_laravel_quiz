@@ -36,6 +36,14 @@ Route::post('/addsubject',[Bookcontroller::class,'addsubject']);
 Route::post('/addquestion',[Bookcontroller::class,'addquestion']);
 Route::post('/fetchrecords',[Bookcontroller::class,'fetchrecords']);
 Route::post('/updatepassword',[Bookcontroller::class,'updatepassword']);
+Route::post('/googlelogin',[Bookcontroller::class,'googlelogin']);
+Route::get('/fetchtime',[Bookcontroller::class,'fetchtime']);
+
+
+
+
+
+
 
 
 

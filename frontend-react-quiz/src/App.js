@@ -21,6 +21,10 @@ import Forgetpassword from "./components/Forgetpassword";
 import Sidebar from "./components/Sidebar";
 import Adminsidebar from "./components/Adminsidebar";
 import Entryheader from "./components/Entryheader";
+import ChatBox from "./components/ChatBox";
+
+// import Logout from "./components/Logout";
+
 
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -53,10 +57,13 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="attemptquiz" element={<Attemptquiz />} />
           <Route path="myrecords" element={<Myrecords />} />
-
           <Route path="userdashboard" element={<Userdashboard />} />
+
+          <Route path="chatbox" element={<ChatBox />} />
           <Route path="admindashboard" element={<Admindashboard />} />
           <Route path="forgetpassword" element={<Forgetpassword />} />
+          {/* <Route path="logout" element={<Logout />} /> */}
+
 
           <Route path="/addquestion/:subject_id" element={<Userdashboard />} />
           <Route
@@ -64,9 +71,9 @@ function App() {
             element={<Addquestiontosubject />}
           />
 
-          <Route path="/userdashboard/:user_id" element={<Userdashboard />} />
+          <Route path="/userdashboard/" element={<Userdashboard />} />
           <Route
-            path="/quiz/:selectedSubject/:user_id"
+            path="/quiz/:selectedSubject/"
             element={<Displayquestion />}
           />
         </Routes>

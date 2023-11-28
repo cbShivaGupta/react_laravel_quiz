@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { MenuItem, Select, FormControl, InputLabel, Button, Box } from "@mui/material";
+import {
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Button,
+  Box,
+} from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
-import Sidebar from './Sidebar'; 
+import Sidebar from "./Sidebar";
 
 const AttemptQuiz = () => {
+  const uid = localStorage.getItem("user_token");
+  const role = localStorage.getItem("role");
+
+  if (uid && role == 2) {
+  } else {
+    window.location.href = "/login";
+  }
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const user_id = queryParams.get('user_id');
+  const user_id = localStorage.getItem("userid");
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [questions, setQuestions] = useState([]);
@@ -14,7 +28,9 @@ const AttemptQuiz = () => {
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/subjectforquiz");
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/subjectforquiz"
+        );
         const data = await response.json();
         setSubjects(data);
       } catch (error) {
@@ -35,7 +51,7 @@ const AttemptQuiz = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ display: "flex", height: "100vh" }}>
       <Sidebar user_id={user_id} />
       <Box p={3} flexGrow={1}>
         <FormControl fullWidth>
@@ -74,7 +90,7 @@ const AttemptQuiz = () => {
         >
           {/* Use Link outside of the Button component */}
           <Link
-            to={`/quiz/${selectedSubject}/${user_id}`}
+            to={`/quiz/${selectedSubject}`}
             style={{ textDecoration: "none", color: "white" }}
           >
             Start Quiz

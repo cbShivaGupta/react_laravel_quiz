@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 
 use function PHPUnit\Framework\isNull;
+use Illuminate\Support\Str;
+
 
 class Bookcontroller extends Controller
 {
@@ -72,6 +74,7 @@ class Bookcontroller extends Controller
     // $user_name = $req->input('fname');
     $user_email = $req->input('umail');
     $user_password = $req->input('upass');
+   $user_token= Str::random(60);
 
     $result = DB::table('users')->where(
       'email',
@@ -85,7 +88,7 @@ class Bookcontroller extends Controller
 
     if (count($result) > 0) {
       session()->put('userid', $result[0]->id);
-      return response()->json(['role' => $role, 'user_id' => $user_id], 203);
+      return response()->json(['role' => $role, 'user_id' => $user_id,'user_token'=>$user_token], 203);
     } else {
       return response()->json(['message' => 'error'], 400);
     }
@@ -283,6 +286,12 @@ class Bookcontroller extends Controller
 
     return response()->json($result, 200);
   }
+  public function fetchtime(Request $req){
+    $subject_id = $req->subject;
+    $result=DB::table('subjects')->where('id', $subject_id)->get();
+    $subject_time=$result[0]->quiz_time;
+    return response()->json($subject_time,200);
+  }
   public function submitresponse(Request $req){
     $subject_id=$req->subject_id;
     $response_list=$req->response_list;
@@ -314,7 +323,14 @@ class Bookcontroller extends Controller
   public function addsubject(Request $req)
   {
     $subject_name=$req->subject_name;
-    $insert_subject=DB::table('subjects')->insert(['subject_name'=>$subject_name]);
+    $quiz_hour=$req->quizhour;
+    $quiz_min=$req->quizmin;
+    $quiz_sec=$req->quizsec;
+
+    $quiz_time=$quiz_hour.':'.$quiz_min.':'.$quiz_sec;
+
+
+    $insert_subject=DB::table('subjects')->insert(['subject_name'=>$subject_name,'quiz_time'=>$quiz_time]);
     if($insert_subject){
       return response()->json(['msg'=>'Subject added'], 200);
 
@@ -361,8 +377,24 @@ class Bookcontroller extends Controller
   public function fetchrecords(Request $req)
   {
     $user_id=$req->user_id;
-    $res=DB::table('responses')->join('subjects','responses.subject_id','=','subjects.id')->join('questions','responses.question_id','=','questions.id')->join('answers','responses.question_id','=','answers.question_id')->where('responses.user_id',$user_id)->get();
-    return response()->json($res);
+    $filter_id=$req->filter_id;
+    if($filter_id==1){
+    $record_date=$req->record_date;
+    $res=DB::table('responses')->join('subjects','responses.subject_id','=','subjects.id')->join('questions','responses.question_id','=','questions.id')->join('answers','responses.question_id','=','answers.question_id')->where('responses.user_id',$user_id)->where('responses.date',$record_date)->get();
+    return response()->json($res);}
+
+    if($filter_id==2){
+      $selected_subject=$req->selected_subject;
+      $res=DB::table('responses')->join('subjects','responses.subject_id','=','subjects.id')->join('questions','responses.question_id','=','questions.id')->join('answers','responses.question_id','=','answers.question_id')->where('responses.user_id',$user_id)->where('subjects.id',$selected_subject)->get();
+      return response()->json($res);}
+
+      if($filter_id==3){
+        $selected_subject=$req->selected_subject;
+        $record_date=$req->record_date;
+
+        $res=DB::table('responses')->join('subjects','responses.subject_id','=','subjects.id')->join('questions','responses.question_id','=','questions.id')->join('answers','responses.question_id','=','answers.question_id')->where('responses.user_id',$user_id)->where('responses.date',$record_date)->where('subjects.id',$selected_subject)->get();
+        return response()->json($res);}
+
   }
   public function updatepassword(Request $req)
   {
@@ -385,6 +417,34 @@ class Bookcontroller extends Controller
 
     }
     }
+
+  }
+  public function googlelogin(Request $req)
+  {
+    $user_mail=$req->user_mail;
+    $user_scret=$req->user_secret;
+    $user_name=$req->user_name;
+    $user_token= Str::random(60);
+
+    $check_user=DB::table('users')->where('email',$user_mail)->where('google_secret_id',$user_scret)->where('google_user',1)->get();
+    if(count($check_user)==0){
+      $insert_google_users=DB::table('users')->insert([
+        'name'=>$user_name,
+        'email'=>$user_mail,
+        'role'=>2,
+        'google_secret_id'=>$user_scret,
+        'google_user'=>1
+      ]);
+      // if($insert_google_users){
+      
+      // }
+    }
+    return response()->json(['msg'=>'User registered successfully','user_token'=>$user_token],202);
+    // return response()->json($user_scret);
+
+   
+
+
 
   }
 

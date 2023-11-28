@@ -11,6 +11,13 @@ import {
 import { useParams } from "react-router-dom";
 
 const Addquestiontosubject = () => {
+  const uid = localStorage.getItem("user_token");
+  const role = localStorage.getItem("role");
+
+  if (uid && role == 1) {
+  } else {
+    window.location.href = "/login";
+  }
   const { subject1_id } = useParams();
 
   const [newQuestion, setNewQuestion] = useState("");
@@ -46,12 +53,12 @@ const Addquestiontosubject = () => {
       })
         .then((response) => response.json())
         .then((data) => {
-            alert(data);    
+          alert(data);
           setNewQuestion("");
         });
-        // alert(response)
+      // alert(response)
       alert("Question added successfully");
-    //   window.location.reload();
+      //   window.location.reload();
     } else {
       alert("Please enter a valid question name.");
     }

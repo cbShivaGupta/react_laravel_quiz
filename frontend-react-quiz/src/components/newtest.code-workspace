@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../backened-laravel"
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {}
+}

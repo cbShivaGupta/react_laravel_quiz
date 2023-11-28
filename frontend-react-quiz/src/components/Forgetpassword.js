@@ -1,24 +1,24 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import toastr from 'toastr';
-import 'toastr/build/toastr.min.css';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
+import toastr from "toastr";
+import "toastr/build/toastr.min.css";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import CssBaseline from "@mui/material/CssBaseline";
+import TextField from "@mui/material/TextField";
+import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
 
 const Forgetpassword = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    umail: '',
-    upass: '',
-    upass_conf:''
+    umail: "",
+    upass: "",
+    upass_conf: "",
   });
 
   const handleInputChange = (event) => {
@@ -31,22 +31,22 @@ const Forgetpassword = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const { umail, upass,upass_conf } = formData;
+    const { umail, upass, upass_conf } = formData;
 
     if (!umail || !upass || !upass_conf) {
-      toastr.error('All fields are required');
+      toastr.error("All fields are required");
       return;
     }
-    if(upass!=upass_conf){
-        toastr.error('Password didn not match');
-        return;
+    if (upass != upass_conf) {
+      toastr.error("Password didn not match");
+      return;
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/updatepassword', {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:8000/api/updatepassword", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -54,15 +54,15 @@ const Forgetpassword = () => {
       if (response.status === 202) {
         const res = await response.json();
 
-       toastr.success(res.msg);
+        toastr.success(res.msg);
       }
       if (response.status === 400) {
         const res = await response.json();
         toastr.error(res.msg);
       }
     } catch (error) {
-      console.error('Error during update:', error);
-      toastr.error('An unexpected error occurred. Please try again.');
+      console.error("Error during update:", error);
+      toastr.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -71,14 +71,14 @@ const Forgetpassword = () => {
       <CssBaseline />
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh', // Set to full viewport height
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh", // Set to full viewport height
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
@@ -127,11 +127,20 @@ const Forgetpassword = () => {
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2, backgroundColor: 'primary.main', color: 'white' }}
+            sx={{
+              mt: 3,
+              mb: 2,
+              backgroundColor: "primary.main",
+              color: "white",
+            }}
           >
-         UPDATE
+            UPDATE
           </Button>
-          
+          <Grid item>
+            <Link to="/login" variant="body2">
+              Back To Login
+            </Link>
+          </Grid>
         </Box>
       </Box>
     </Container>
