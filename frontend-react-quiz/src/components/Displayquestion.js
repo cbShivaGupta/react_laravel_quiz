@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
@@ -17,7 +17,6 @@ import {
 } from "@mui/material";
 
 const user_id = localStorage.getItem("userid");
-var time = "";
 
 const DisplayQuestion = () => {
   const uid = localStorage.getItem("user_token");
@@ -39,7 +38,6 @@ const DisplayQuestion = () => {
   const [timer, setTimer] = useState([]);
   const [isVisible, setVisible] = useState(false);
   const [timerId, setTimerId] = useState(null);
-  // const selectedValuesRef = useRef(selectedValues);
 
   const fetchQuestions = async () => {
     try {
@@ -70,60 +68,73 @@ const DisplayQuestion = () => {
         `http://127.0.0.1:8000/api/fetchtime?subject=${selectedSubject}`
       );
       const contentType = response.headers.get("content-type");
-
+  
       if (contentType && contentType.includes("application/json")) {
         const timeString = await response.json();
+        console.log("Fetched quiz time:", timeString); // Add this line for debugging
+  
         let timeArray = timeString.split(":");
-        let hour = parseInt(timeArray[0], 10); // Convert to integer
+        let hour = parseInt(timeArray[0], 10);
         let minute = parseInt(timeArray[1], 10);
         let second = parseInt(timeArray[2], 10);
         let quiztime = (hour * 60 * 60 + minute * 60 + second) * 1000;
-        setTimer(quiztime);
+        console.log("Converted quiz time:", quiztime); // Add this line for debugging
+  
+        setLoading(false);
+        return quiztime;
       } else {
         const text = await response.text();
         console.error("Invalid JSON response. Response body:", text);
       }
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching time:", error);
       setError(error);
     }
   };
-  useEffect(() => {
-    fetchQuestions();
-  }, [selectedSubject]);
 
   useEffect(() => {
-    fetchTime();
+    const fetchData = async () => {
+      await fetchQuestions();
+      const quiztime = await fetchTime();
+      setTimer(quiztime);
+    };
+
+    fetchData();
   }, [selectedSubject]);
 
   const handleRadioChange = (index, value) => {
-    // alert(index+'--'+value)
     setSelectedValues((prevSelectedValues) => {
       const updatedValues = [...prevSelectedValues];
       updatedValues[index] = value;
-      // selectedValuesRef.current = updatedValues;
-
       return updatedValues;
     });
   };
 
-  const startQuiz = () => {
-    setVisible(!isVisible);
-    const timeridentity = setTimeout(() => {
-      // Perform any action after the timer expires
-      //  alert("Time's up! Submitting answers...");
-      console.log("Submitted values:", selectedValues);
-      handleSubmit();
-    }, timer);
-    setTimerId(timeridentity);
+  const startQuiz = async () => {
+    try {
+      setVisible(!isVisible);
+
+      // Fetch quiz time
+      const quiztime = await fetchTime();
+
+      if (quiztime > 0) {
+        const timeridentity = setTimeout(() => {
+          handleSubmit();
+        }, quiztime);
+        setTimerId(timeridentity);
+      } else {
+        console.error("Invalid timer value:", quiztime);
+      }
+    } catch (error) {
+      console.error("Error starting quiz:", error);
+    }
   };
 
   const handleSubmit = async () => {
     clearTimeout(timerId);
 
-    console.log("Submitted values:", selectedValues);
     setSubmitted(true);
+    console.log(selectedValues)
     const user_id = localStorage.getItem("userid");
 
     const apiUrl = "http://127.0.0.1:8000/api/submitresponse";
@@ -143,7 +154,6 @@ const DisplayQuestion = () => {
     const data2 = await response.json();
     if (response.status === 200) {
       alert(data2.msg);
-      // window.location.href = '/userdashboard';
     }
   };
 
@@ -152,7 +162,6 @@ const DisplayQuestion = () => {
       <Button onClick={startQuiz}>Start Quiz</Button>
       {isVisible && (
         <div>
-          {" "}
           <Grid container>
             <Grid item xs={1.8}>
               <Sidebar user_id={user_id} />

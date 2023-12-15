@@ -28,11 +28,25 @@ const Adminsidebar = () => {
         alignItems: "flex-start",
         justifyContent: "flex-start",
         height: "100vh",
+        width: "250px", // Set a fixed width for the sidebar
         backgroundColor: "#1976d2",
         padding: "20px",
         color: "white",
       }}
     >
+        <List>
+        <ListItem
+          button
+          component={Link}
+          to="/addsubject"
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <IconButton sx={{ color: "inherit" }}>
+            <AssessmentIcon />
+          </IconButton>
+          <ListItemText primary="Add Subject" />
+        </ListItem>
+      </List>
       <List>
         <ListItem
           button

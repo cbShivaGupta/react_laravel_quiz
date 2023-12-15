@@ -21,6 +21,10 @@ import Forgetpassword from "./components/Forgetpassword";
 import Sidebar from "./components/Sidebar";
 import Adminsidebar from "./components/Adminsidebar";
 import Entryheader from "./components/Entryheader";
+import Addsubject from "./components/Addsubject";
+import Editsubject from "./components/Editsubject";
+
+
 import ChatBox from "./components/ChatBox";
 
 // import Logout from "./components/Logout";
@@ -56,6 +60,8 @@ function App() {
 
           <Route path="login" element={<Login />} />
           <Route path="attemptquiz" element={<Attemptquiz />} />
+          <Route path="addsubject" element={<Addsubject />} />
+
           <Route path="myrecords" element={<Myrecords />} />
           <Route path="userdashboard" element={<Userdashboard />} />
 
@@ -69,6 +75,10 @@ function App() {
           <Route
             path="/addquestiontosubject/:subject1_id"
             element={<Addquestiontosubject />}
+          />
+            <Route
+            path="/editsubject/:subject1_id"
+            element={<Editsubject />}
           />
 
           <Route path="/userdashboard/" element={<Userdashboard />} />

@@ -38,6 +38,28 @@ Route::post('/fetchrecords',[Bookcontroller::class,'fetchrecords']);
 Route::post('/updatepassword',[Bookcontroller::class,'updatepassword']);
 Route::post('/googlelogin',[Bookcontroller::class,'googlelogin']);
 Route::get('/fetchtime',[Bookcontroller::class,'fetchtime']);
+// checkpreviousattempstatus
+Route::post('/checkpreviousattempstatus',[Bookcontroller::class,'checkpreviousattempstatus']);
+Route::post('/getsearchedsubject',[Bookcontroller::class,'getsearchedsubject']);
+Route::get('/fetchalldata',[Bookcontroller::class,'fetchalldata']);
+Route::get('/fetchtrendingquiz',[Bookcontroller::class,'fetchtrendingquiz']);
+Route::post('/geteditsubjectdetails',[Bookcontroller::class,'geteditsubjectdetails']);
+Route::post('/updateSubject',[Bookcontroller::class,'updateSubject']);
+Route::post('/deleteQuestion',[Bookcontroller::class,'deleteQuestion']);
+Route::post('/deletesubject',[Bookcontroller::class,'deletesubject']);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

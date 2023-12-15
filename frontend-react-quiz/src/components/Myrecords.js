@@ -65,6 +65,7 @@ const MyRecords = () => {
       if (selectedSubject == null) {
         toastr.error("Select date or subject");
       } else {
+        // alert("userid="+user_id+" "+"subject_id="+selectedSubject)
         const response = await fetch("http://127.0.0.1:8000/api/fetchrecords", {
           method: "POST",
           headers: {
@@ -81,6 +82,7 @@ const MyRecords = () => {
 
         if (contentType && contentType.includes("application/json")) {
           const data = await response.json();
+          // console.log("DATA="+data);
           setIsVisible(true);
           setRecords(data);
         } else {

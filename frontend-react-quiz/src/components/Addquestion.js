@@ -120,6 +120,43 @@ const AddQuestion = () => {
     }
   };
 
+  const deleteSubject = async () => {
+    // alert(selectedSubject)
+    if (!selectedSubject) {
+      toastr.error("Please select a subject to delete");
+      return;
+    }
+  if(window.confirm("Are you sure you want to delete this subject?")){
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/deletesubject", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+           // Add the subject ID to the headers
+        },
+
+        body: JSON.stringify({ 
+          subject_id: selectedSubject
+        })
+
+
+      });
+  
+      if (response.status === 200) {
+        toastr.success("Subject deleted");
+        setSubjects((prevSubjects) =>
+          prevSubjects.filter((subject) => subject.id !== selectedSubject)
+        );
+        setSelectedSubject("")
+        // fetchSubjects();
+      } else {
+        toastr.error("Failed to delete subject");
+      }
+    } catch (error) {
+      console.error("Error deleting subject:", error);
+    }
+  }}
+  
   return (
     <Container>
       <Grid container>
@@ -128,54 +165,8 @@ const AddQuestion = () => {
         </Grid>
         <Grid item xs={9}>
           <div style={{ padding: "20px" }}>
-            <Typography variant="h5">Add a new subject:</Typography>
-            <TextField
-              type="text"
-              name="newsubject"
-              label="New Subject"
-              variant="outlined"
-              margin="normal"
-              fullWidth
-              value={newSubject}
-              onChange={(e) => setNewSubject(e.target.value)}
-            />
-            <Typography variant="h5">Quiz Duration:</Typography>
-            HR:{" "}
-            <input
-              type="number"
-              name="quizhour"
-              maxLength={2}
-              value={quizhour}
-              onChange={setHour}
-            />
-            MIN:{" "}
-            <input
-              type="number"
-              name="quizmin"
-              maxLength={2}
-              value={quizmin}
-              onChange={setMin}
-            />
-            SEC:{" "}
-            <input
-              type="number"
-              name="quizsec"
-              maxLength={2}
-              value={quizsec}
-              onChange={setSec}
-            />
-            <br /> <br />
-            <br />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={addSubject}
-              style={{ marginRight: "10px" }}
-            >
-              Add Subject
-            </Button>
-            <br /> <br />
-            <Typography variant="body2">OR</Typography>
+          
+           
             <FormControl fullWidth variant="outlined" margin="normal">
               <InputLabel htmlFor="subject-select">Select Subject</InputLabel>
               <Select
@@ -213,6 +204,35 @@ const AddQuestion = () => {
               >
                 Add Question
               </Link>
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              style={{ marginTop: "20px" }}
+              // onClick={handleStartQuiz}
+              disabled={!selectedSubject}
+            >
+              <Link
+                to={`/editsubject/${selectedSubject}`}
+                style={{ textDecoration: "none", color: "white" }}
+              >
+               Edit Subject
+              </Link>
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              style={{ marginTop: "20px" }}
+             
+              disabled={!selectedSubject}
+              onClick={deleteSubject}
+            >
+              {/* <Link
+                to={`/editsubject/${selectedSubject}`}
+                style={{ textDecoration: "none", color: "white" }}
+              > */}
+              Delete Subject
+              {/* </Link> */}
             </Button>
           </div>
         </Grid>

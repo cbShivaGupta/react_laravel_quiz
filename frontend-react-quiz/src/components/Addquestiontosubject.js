@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import toastr from "toastr";
+import "toastr/build/toastr.min.css";
 import {
   TextField,
   Button,
@@ -53,14 +55,19 @@ const Addquestiontosubject = () => {
       })
         .then((response) => response.json())
         .then((data) => {
-          alert(data);
+          // alert(data);
           setNewQuestion("");
+          setOption1("");
+          setOption2("");
+          setOption3("");
+          setOption4("");
+
         });
       // alert(response)
-      alert("Question added successfully");
+      toastr.succcess("Question added successfully");
       //   window.location.reload();
     } else {
-      alert("Please enter a valid question name.");
+      toastr.error("Please enter a valid question name.");
     }
   };
 

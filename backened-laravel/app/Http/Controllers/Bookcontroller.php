@@ -1,16 +1,10 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-
 use Illuminate\Http\Request;
-
 use function PHPUnit\Framework\isNull;
 use Illuminate\Support\Str;
-
-
 class Bookcontroller extends Controller
 {
   public function index()
@@ -38,7 +32,6 @@ class Bookcontroller extends Controller
     if ($delete_booking && $update_seat) {
       return response()->json(['message' => 'Ticket Cancelled'], 201);
     }
-
     // $cancel=DB::table('')
   }
   public function showmybookings(Request $req)
@@ -46,7 +39,6 @@ class Bookcontroller extends Controller
     $booking_details = [];
     $user_id = $req->user_id;
     $result = DB::table('users')->join('bookings', 'users.id', 'bookings.user_id')->join('train_details', 'bookings.train_id', 'train_details.id')->where('users.id', $user_id)->get();
-
     return response()->json($result);
   }
   public function register(Request $req)
@@ -54,28 +46,24 @@ class Bookcontroller extends Controller
     $user_name = $req->input('fname');
     $user_email = $req->input('umail');
     $user_password = $req->input('upass');
-
     $result = DB::table('users')->insert([
       'name' => $user_name,
       'email' => $user_email,
       'password' => $user_password,
       'role' => 2
     ]);
-
     if ($result) {
       return response()->json(['message' => 'User added'], 201);
     } else {
       return response()->json(['message' => 'Failed to add user'], 400);
     }
   }
-
   public function login(Request $req)
   {
     // $user_name = $req->input('fname');
     $user_email = $req->input('umail');
     $user_password = $req->input('upass');
-   $user_token= Str::random(60);
-
+    $user_token = Str::random(60);
     $result = DB::table('users')->where(
       'email',
       $user_email
@@ -85,10 +73,9 @@ class Bookcontroller extends Controller
     )->get();
     $role = $result[0]->role;
     $user_id = $result[0]->id;
-
     if (count($result) > 0) {
       session()->put('userid', $result[0]->id);
-      return response()->json(['role' => $role, 'user_id' => $user_id,'user_token'=>$user_token], 203);
+      return response()->json(['role' => $role, 'user_id' => $user_id, 'user_token' => $user_token], 203);
     } else {
       return response()->json(['message' => 'error'], 400);
     }
@@ -102,16 +89,13 @@ class Bookcontroller extends Controller
     $train_departuretime_hr = $req->input('train_departuretime_hr');
     $train_departuretime_min = $req->input('train_departuretime_min');
     $train_departuretime_sec = $req->input('train_departuretime_sec');
-
     $train_arrivaltime_hr = $req->input('train_arrivaltime_hr');
     $train_arrivaltime_min = $req->input('train_arrivaltime_min');
     $train_arrivaltime_sec = $req->input('train_arrivaltime_sec');
-
     $train_departuredate = $req->input('train_departuredate');
     $train_arrivaldate = $req->input('train_arrivaldate');
     $train_departuretime = $train_departuretime_hr . ':' . $train_departuretime_min . ':' . $train_departuretime_sec;
     $train_arrivaltime = $train_arrivaltime_hr . ':' . $train_arrivaltime_min . ':' . $train_arrivaltime_sec;
-
     $result = DB::table('train_details')->insert([
       'train_name' => $train_name,
       'source_station' => $train_sourcestation,
@@ -122,7 +106,6 @@ class Bookcontroller extends Controller
       'departure_date' => $train_departuredate,
       'arrival_date' => $train_arrivaldate
     ]);
-
     if ($result) {
       return response()->json(['message' => 'Train added'], 201);
     } else {
@@ -161,12 +144,9 @@ class Bookcontroller extends Controller
       ->distinct()
       ->where('destination_station', 'LIKE', $train_destinationstation . '%')
       ->get();
-
     // $result=DB::table('train_details')->where('destination_station','LIKE',$train_destinationstation.'%')->get('destination_station');
     return response()->json($result, 200);
   }
-
-
   public function show($id)
   {
     $res = DB::table('books')->where('id', $id)->get();
@@ -180,7 +160,6 @@ class Bookcontroller extends Controller
   {
     $res = DB::table('books')->where('id', $id)->get();
     if (!empty($res)) {
-
       $book_name = $req->name;
       $author_name = $req->author;
       $no_of_pages = $req->pages;
@@ -189,7 +168,6 @@ class Bookcontroller extends Controller
         $book_name = $res[0]->name;
       }
       if ($author_name == '') {
-
         $author_name = $res[0]->author_name;
       }
       if ($no_of_pages == '') {
@@ -219,38 +197,24 @@ class Bookcontroller extends Controller
     $train['arrival_time'] = $query[0]->arrival_time;
     $train['train_name'] = $query[0]->train_name;
     $train['train_no'] = $query[0]->train_no;
-
     $train['departure_date'] = $query[0]->departure_date;
     $train['arrival_date'] = $query[0]->arrival_date;
     $total_seats = $query[0]->total_seats;
-
-
     if ($total_seats != 100) {
       $lastInsertedValue = DB::table('bookings')->where('train_id', $train_id)
         ->select('seat_number')
         ->orderBy('id', 'desc') // Assuming you have an auto-increment 'id' column
         ->first();
-
-
       $value = $lastInsertedValue->seat_number;
-
       $seat_no = $value + 1;
     } else {
       $seat_no = 1;
     }
-
-
     $train['seat_no'] = $seat_no;
-
     $string = $train['departure_date'];
     $firstTwoChars = substr($string, 9, 11);
-
     $booking_id = $train_id . $firstTwoChars . $user_id . $seat_no;
     $train['booking_id'] = $booking_id;
-
-
-
-
     $insert_booking = DB::table('bookings')->insert([
       'name' => $req->passenger_name,
       'train_id' => $train_id,
@@ -259,9 +223,7 @@ class Bookcontroller extends Controller
       'departure_date' => $query[0]->departure_date,
       'seat_number' => $seat_no,
       'booking_id' => $booking_id
-
     ]);
-
     $seat_update = DB::table('train_details')
       ->where('id', $train_id)
       ->decrement('total_seats');
@@ -275,178 +237,253 @@ class Bookcontroller extends Controller
     return response()->json($result, 200);
   }
   public function getquestions(Request $req)
-
   {
     $subject_id = $req->subject;
     $result = DB::table('questions')
-    ->join('answers', 'questions.id', '=', 'answers.question_id')
-    ->where('subject_id', $subject_id)
-    ->select('questions.id as question_id', 'answers.id as answer_id', 'questions.*', 'answers.*')
-    ->get();
-
+      ->join('answers', 'questions.id', '=', 'answers.question_id')
+      ->where('subject_id', $subject_id)
+      ->select('questions.id as question_id', 'answers.id as answer_id', 'questions.*', 'answers.*')
+      ->get();
     return response()->json($result, 200);
   }
-  public function fetchtime(Request $req){
+  public function fetchtime(Request $req)
+  {
     $subject_id = $req->subject;
-    $result=DB::table('subjects')->where('id', $subject_id)->get();
-    $subject_time=$result[0]->quiz_time;
-    return response()->json($subject_time,200);
+    $result = DB::table('subjects')->where('id', $subject_id)->get();
+    $subject_time = $result[0]->quiz_time;
+    return response()->json($subject_time, 200);
   }
-  public function submitresponse(Request $req){
-    $subject_id=$req->subject_id;
-    $response_list=$req->response_list;
-    $user_id=$req->user_id;
+  public function submitresponse(Request $req)
+  {
+    $subject_id = $req->subject_id;
+    $response_list = $req->response_list;
+    $user_id = $req->user_id;
     // $type=gettype($response_list);
     // $user_id=session()->get('userid');
-    for($i=0;$i<count($response_list);$i++)
-    {
-      $fc=strpos($response_list[$i], '_');
-      $lc=strrpos($response_list[$i], '_');
-      $response=substr($response_list[$i],0,$fc);
-      $question_id=substr($response_list[$i],$lc+1,strlen($response_list[$i])-1);
-    $result=DB::table('responses')->insert([
-      'user_id'=>$user_id,
-      'subject_id'=>$subject_id,
-      'response'=>$response,
-      'question_id'=>$question_id
-
-    ]);
+    for ($i = 0; $i < count($response_list); $i++) {
+      $fc = strpos($response_list[$i], '_');
+      $lc = strrpos($response_list[$i], '_');
+      $response = substr($response_list[$i], 0, $fc);
+      $question_id = substr($response_list[$i], $lc + 1, strlen($response_list[$i]) - 1);
+      $result = DB::table('responses')->insert([
+        'user_id' => $user_id,
+        'subject_id' => $subject_id,
+        'response' => $response,
+        'question_id' => $question_id
+      ]);
     }
     // return response()->json($user_id, 200);
-
-    return response()->json(['msg'=>'Response recorded'], 200);
-
-
-
-
+    return response()->json(['msg' => 'Response recorded'], 200);
   }
   public function addsubject(Request $req)
   {
-    $subject_name=$req->subject_name;
-    $quiz_hour=$req->quizhour;
-    $quiz_min=$req->quizmin;
-    $quiz_sec=$req->quizsec;
-
-    $quiz_time=$quiz_hour.':'.$quiz_min.':'.$quiz_sec;
-
-
-    $insert_subject=DB::table('subjects')->insert(['subject_name'=>$subject_name,'quiz_time'=>$quiz_time]);
-    if($insert_subject){
-      return response()->json(['msg'=>'Subject added'], 200);
-
+    $subject_name = $req->subject_name;
+    $quiz_hour = $req->quizhour;
+    $quiz_min = $req->quizmin;
+    $quiz_sec = $req->quizsec;
+    $quiz_time = $quiz_hour . ':' . $quiz_min . ':' . $quiz_sec;
+    $insert_subject = DB::table('subjects')->insert(['subject_name' => $subject_name, 'quiz_time' => $quiz_time]);
+    if ($insert_subject) {
+      return response()->json(['msg' => 'Subject added'], 200);
     }
-
   }
   public function addquestion(Request $req)
   {
-      $subject_id = $req->subject_id;
-      $question = $req->question;
-      $option1 = $req->option1;
-      $option2 = $req->option2;
-      $option3 = $req->option3;
-      $option4 = $req->option4;
-      $correct_option = $req->correctOption;
-  
-      // Insert the question
-      $insert_question = DB::table('questions')->insert([
-          'question' => $question,
-          'subject_id' => $subject_id,
-          // Add other columns and their values as needed
-      ]);
-  
-      // Get the last inserted ID
-      $lastInsertedId = DB::table('questions')->orderBy('id', 'desc')->value('id');
-      $insert_answers=DB::table('answers')->insert([
-        'option1'=>$option1,
-        'option2'=>$option2,
-        'option3'=>$option3,
-        'option4'=>$option4,
-        'question_id'=>$lastInsertedId,
-        'correct_option'=>$correct_option
-      ]);
-
-  
-      // Construct the response in JSON format
-      $responseJson = json_encode([
-          'lastInsertedId' => $lastInsertedId,
-      ]);
-  
-      // Return the JSON response
-      return response()->json($responseJson);
+    $subject_id = $req->subject_id;
+    $question = $req->question;
+    $option1 = $req->option1;
+    $option2 = $req->option2;
+    $option3 = $req->option3;
+    $option4 = $req->option4;
+    $correct_option = $req->correctOption;
+    // Insert the question
+    $insert_question = DB::table('questions')->insert([
+      'question' => $question,
+      'subject_id' => $subject_id,
+      // Add other columns and their values as needed
+    ]);
+    // Get the last inserted ID
+    $lastInsertedId = DB::table('questions')->orderBy('id', 'desc')->value('id');
+    $insert_answers = DB::table('answers')->insert([
+      'option1' => $option1,
+      'option2' => $option2,
+      'option3' => $option3,
+      'option4' => $option4,
+      'question_id' => $lastInsertedId,
+      'correct_option' => $correct_option
+    ]);
+    // Construct the response in JSON format
+    $responseJson = json_encode([
+      'lastInsertedId' => $lastInsertedId,
+    ]);
+    // Return the JSON response
+    return response()->json($responseJson);
   }
   public function fetchrecords(Request $req)
   {
-    $user_id=$req->user_id;
-    $filter_id=$req->filter_id;
-    if($filter_id==1){
-    $record_date=$req->record_date;
-    $res=DB::table('responses')->join('subjects','responses.subject_id','=','subjects.id')->join('questions','responses.question_id','=','questions.id')->join('answers','responses.question_id','=','answers.question_id')->where('responses.user_id',$user_id)->where('responses.date',$record_date)->get();
-    return response()->json($res);}
-
-    if($filter_id==2){
-      $selected_subject=$req->selected_subject;
-      $res=DB::table('responses')->join('subjects','responses.subject_id','=','subjects.id')->join('questions','responses.question_id','=','questions.id')->join('answers','responses.question_id','=','answers.question_id')->where('responses.user_id',$user_id)->where('subjects.id',$selected_subject)->get();
-      return response()->json($res);}
-
-      if($filter_id==3){
-        $selected_subject=$req->selected_subject;
-        $record_date=$req->record_date;
-
-        $res=DB::table('responses')->join('subjects','responses.subject_id','=','subjects.id')->join('questions','responses.question_id','=','questions.id')->join('answers','responses.question_id','=','answers.question_id')->where('responses.user_id',$user_id)->where('responses.date',$record_date)->where('subjects.id',$selected_subject)->get();
-        return response()->json($res);}
-
+    $user_id = $req->user_id;
+    $filter_id = $req->filter_id;
+    if ($filter_id == 1) {
+      $record_date = $req->record_date;
+      $res = DB::table('responses')->join('subjects', 'responses.subject_id', '=', 'subjects.id')->join('questions', 'responses.question_id', '=', 'questions.id')->join('answers', 'responses.question_id', '=', 'answers.question_id')->where('responses.user_id', $user_id)->where('responses.date', $record_date)->get();
+      return response()->json($res);
+    }
+    if ($filter_id == 2) {
+      $selected_subject = $req->selected_subject;
+      $res = DB::table('responses')->join('subjects', 'responses.subject_id', '=', 'subjects.id')->join('questions', 'responses.question_id', '=', 'questions.id')->join('answers', 'responses.question_id', '=', 'answers.question_id')->where('responses.user_id', $user_id)->where('subjects.id', $selected_subject)->get();
+      return response()->json($res);
+    }
+    if ($filter_id == 3) {
+      $selected_subject = $req->selected_subject;
+      $record_date = $req->record_date;
+      $res = DB::table('responses')->join('subjects', 'responses.subject_id', '=', 'subjects.id')->join('questions', 'responses.question_id', '=', 'questions.id')->join('answers', 'responses.question_id', '=', 'answers.question_id')->where('responses.user_id', $user_id)->where('responses.date', $record_date)->where('subjects.id', $selected_subject)->get();
+      return response()->json($res);
+    }
   }
   public function updatepassword(Request $req)
   {
-    $user_mail=$req->umail;
-    $user_pass=$req->upass;
-    $search_user=DB::table('users')->where('email',$user_mail)->get();
-    if(count($search_user)==0){
-      return response()->json(['msg'=>'There is no user associated with the given email adddress'],400);
-    }
-    else{
-      $update_password=DB::table('users')->where('email',$user_mail)->update([
-        'password'=>$user_pass
+    $user_mail = $req->umail;
+    $user_pass = $req->upass;
+    $search_user = DB::table('users')->where('email', $user_mail)->get();
+    if (count($search_user) == 0) {
+      return response()->json(['msg' => 'There is no user associated with the given email adddress'], 400);
+    } else {
+      $update_password = DB::table('users')->where('email', $user_mail)->update([
+        'password' => $user_pass
       ]);
-    if($update_password){
-      return response()->json(['msg'=>'Password Updated Successfully'],202);
-
+      if ($update_password) {
+        return response()->json(['msg' => 'Password Updated Successfully'], 202);
+      } else {
+        return response()->json(['msg' => 'Some error occured.Please retry after some times'], 400);
+      }
     }
-    else{
-      return response()->json(['msg'=>'Some error occured.Please retry after some times'],400);
-
-    }
-    }
-
   }
   public function googlelogin(Request $req)
   {
-    $user_mail=$req->user_mail;
-    $user_scret=$req->user_secret;
-    $user_name=$req->user_name;
-    $user_token= Str::random(60);
-
-    $check_user=DB::table('users')->where('email',$user_mail)->where('google_secret_id',$user_scret)->where('google_user',1)->get();
-    if(count($check_user)==0){
-      $insert_google_users=DB::table('users')->insert([
-        'name'=>$user_name,
-        'email'=>$user_mail,
-        'role'=>2,
-        'google_secret_id'=>$user_scret,
-        'google_user'=>1
+    $user_mail = $req->user_mail;
+    $user_scret = $req->user_secret;
+    $user_name = $req->user_name;
+    $user_token = Str::random(60);
+    $check_user = DB::table('users')->where('email', $user_mail)->where('google_secret_id', $user_scret)->where('google_user', 1)->get();
+    if (count($check_user) == 0) {
+      $insert_google_users = DB::table('users')->insert([
+        'name' => $user_name,
+        'email' => $user_mail,
+        'role' => 2,
+        'google_secret_id' => $user_scret,
+        'google_user' => 1
       ]);
-      // if($insert_google_users){
-      
-      // }
     }
-    return response()->json(['msg'=>'User registered successfully','user_token'=>$user_token],202);
-    // return response()->json($user_scret);
+    return response()->json(['msg' => 'User registered successfully', 'user_token' => $user_token], 202);
+    }
+    public function checkpreviousattempstatus(Request $req)
+    {
+      $user_id=$req->user_id;
+      $subject_id=$req->selected_subject;
+      $checkstatus=DB::table('responses')->where('user_id',$user_id)->where('subject_id',$subject_id)->get();
+      if(count($checkstatus)>1){
+           return  response()->json(['msg'=>"You have no free trials remaining for this subject quiz"],202);
+      }
+      else{
+        return  response()->json(['msg'=>"You have no free trials remaining for this subject quiz"],404);
+      }
+    }
+    public function getsearchedsubject(Request $req)
+    {
+      $searchsubject=$req->searchsubject;
+      // $subject=[];
+      $getsubject=DB::table('subjects')->where('subject_name',$searchsubject)->get();
+     if(count($getsubject)>0){
+      $subject_id=$getsubject[0]->id;
+      $subject_name=$getsubject[0]->subject_name;
+     
+      return response()->json(['subject_id'=>$subject_id,'subject_name'=>$subject_name],202);
+    }
+    else{
+      return response()->json(['msg'=>"No subject found"],404);
+    }
+  
+  }
+  public function fetchalldata()
+  {
+    $users=DB::table('users')->get();
+    $totalusers=count($users);
+    $subjects=DB::table('subjects')->get();
+    $totalsubjects=count($subjects);
+    
+    $questions=DB::table('questions')->get();
+    $totalquestions=count($questions);
+    return response()->json(['totalusers'=>$totalusers,'totalsubjects'=>$totalsubjects,'totalquestions'=>$totalquestions],202);
+  }
+  public function fetchtrendingquiz()
+  {
+    $results = DB::table('responses')
+    ->join('subjects', 'responses.subject_id', '=', 'subjects.id')
+    ->select('responses.subject_id', 'subjects.subject_name', DB::raw('COUNT(responses.subject_id) AS B_count'))
+    ->groupBy('responses.subject_id', 'subjects.subject_name')
+    ->having('B_count', '>', 1)
+    ->orderByDesc('B_count')
+    ->limit(3)
+    ->get();
+    return response()->json($results);
+  }
+  public function geteditsubjectdetails(Request $req)
+  {
+    $subject_id=$req->subject_id;
+    $result=DB::table('subjects')->join('questions','subjects.id','=','questions.subject_id')->join('answers','questions.id','=','answers.question_id')->where('subjects.id',$subject_id)->get();
+    return response()->json($result);
+  }
+  public function updateSubject(Request $req)
+  {
+    $subject_id=$req->subject_id;
+   $question_id=$req->question_id;
+   $answer_id=$req->answer_id;
+   $question=$req->question;
+   $option1=$req->option1;
+   $option2=$req->option2;
+   $option3=$req->option3;
+   $option4=$req->option4;
+   $correct_option=$req->correct_option;
+   $updatequestion=DB::table('questions')->where('id',$question_id)->update(['question'=>$question]);
+   $updateanswer=DB::table('answers')->where('id',$answer_id)->update(['option1'=>$option1,'option2'=>$option2,'option3'=>$option3,'option4'=>$option4,'correct_option'=>$correct_option]);
+if($updatequestion || $updateanswer){
+  return response()->json(['msg'=>'Quiz updated succesfully'],202);
 
-   
+}
+else{
+  return response()->json(['msg'=>'Some error occured'],404);
 
-
+}
 
   }
+  public function deleteQuestion(Request $req)
+  {
+    $question_id=$req->question_id;
+    $answer_id=$req->answer_id;
+    $delete_question=DB::table('questions')->where('id',$question_id)->delete();
+    $delete_answer=DB::table('answers')->where('id',$answer_id)->delete();
+    if($delete_question && $delete_answer){
+      return response()->json(['msg'=>'Question deleted succesfully'],202);
+    
+    }
+    else{
+      return response()->json(['msg'=>'Some error occured'],404);
+    
+    }
+    
 
-  
+  }
+  public function deletesubject(Request $req){
+    // $question_ids=[];
+    $subject_id=$req->subject_id;
+    $query=DB::table('questions')->where('subject_id',$subject_id)->get('id');
+    for($i=0;$i<count($query);$i++){
+      $question_ids=$query[$i]->id;
+      DB::table('answers')->where('question_id',$question_ids)->delete();
+
+    }
+    $delete_subject=DB::table('subjects')->where('id',$subject_id)->delete();
+    $delete_questions=DB::table('questions')->where('subject_id',$subject_id)->delete();
+return response()->json(['msg'=>'Deleted sucesfully'],200);
+  }
 }

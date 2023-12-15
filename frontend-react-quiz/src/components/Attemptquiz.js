@@ -9,10 +9,17 @@ import {
 } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import toastr from "toastr";
+import "toastr/build/toastr.min.css";
+import { useNavigate  } from 'react-router-dom';
+
+
 
 const AttemptQuiz = () => {
   const uid = localStorage.getItem("user_token");
   const role = localStorage.getItem("role");
+  const navigate = useNavigate();
+
 
   if (uid && role == 2) {
   } else {
@@ -44,6 +51,44 @@ const AttemptQuiz = () => {
   const handleSubjectChange = (event) => {
     setSelectedSubject(event.target.value);
   };
+  const checkpreviousattempstatus=async()=>{
+    // alert(user_id)
+    // alert(selectedSubject)
+    const response = await fetch("http://127.0.0.1:8000/api/checkpreviousattempstatus", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: user_id,
+        // record_date: recordDate,
+        selected_subject: selectedSubject,
+       
+      }),
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+    // alert(data.msg)
+    // alert(response.status)
+    if(response.status==202)
+    {
+      // alert(response.status)
+      toastr.error(data.msg)
+    }
+    else{
+      // alert('in else')
+      const route = `/quiz/${selectedSubject}`;
+      // const history = useHistory();
+
+
+      // Use the history object to navigate to the route
+      navigate(route);
+    }
+    }
+  }
 
   const handleStartQuiz = () => {
     // Perform any actions needed before starting the quiz
@@ -85,16 +130,17 @@ const AttemptQuiz = () => {
           variant="contained"
           color="primary"
           style={{ marginTop: "20px" }}
-          onClick={handleStartQuiz}
+          // onClick={handleStartQuiz}
           disabled={!selectedSubject}
+          onClick={checkpreviousattempstatus}
         >
           {/* Use Link outside of the Button component */}
-          <Link
+          {/* <Link
             to={`/quiz/${selectedSubject}`}
             style={{ textDecoration: "none", color: "white" }}
-          >
+          > */}
             Start Quiz
-          </Link>
+          {/* </Link> */}
         </Button>
       </Box>
     </Box>
