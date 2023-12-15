@@ -42,7 +42,7 @@ const Editsubject = () => {
   useEffect(() => {
     fetchSubjects();
   }, []);
-
+//test
   const handleInputChange = (index, name, value) => {
     setUpdateQuestions((prevQuestions) => {
       const updatedQuestions = [...prevQuestions];
