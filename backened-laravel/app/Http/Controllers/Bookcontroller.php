@@ -1,10 +1,17 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use function PHPUnit\Framework\isNull;
 use Illuminate\Support\Str;
+use App\Mail\Mymail;
+
+use Illuminate\Support\Facades\Mail;
+
+
 class Bookcontroller extends Controller
 {
   public function index()
@@ -375,115 +382,137 @@ class Bookcontroller extends Controller
       ]);
     }
     return response()->json(['msg' => 'User registered successfully', 'user_token' => $user_token], 202);
+  }
+  public function checkpreviousattempstatus(Request $req)
+  {
+    $user_id = $req->user_id;
+    $subject_id = $req->selected_subject;
+    $checkstatus = DB::table('responses')->where('user_id', $user_id)->where('subject_id', $subject_id)->get();
+    if (count($checkstatus) > 1) {
+      return  response()->json(['msg' => "You have no free trials remaining for this subject quiz"], 202);
+    } else {
+      return  response()->json(['msg' => "You have no free trials remaining for this subject quiz"], 404);
     }
-    public function checkpreviousattempstatus(Request $req)
-    {
-      $user_id=$req->user_id;
-      $subject_id=$req->selected_subject;
-      $checkstatus=DB::table('responses')->where('user_id',$user_id)->where('subject_id',$subject_id)->get();
-      if(count($checkstatus)>1){
-           return  response()->json(['msg'=>"You have no free trials remaining for this subject quiz"],202);
-      }
-      else{
-        return  response()->json(['msg'=>"You have no free trials remaining for this subject quiz"],404);
-      }
+  }
+  public function getsearchedsubject(Request $req)
+  {
+    $searchsubject = $req->searchsubject;
+    // $subject=[];
+    $getsubject = DB::table('subjects')->where('subject_name', $searchsubject)->get();
+    if (count($getsubject) > 0) {
+      $subject_id = $getsubject[0]->id;
+      $subject_name = $getsubject[0]->subject_name;
+
+      return response()->json(['subject_id' => $subject_id, 'subject_name' => $subject_name], 202);
+    } else {
+      return response()->json(['msg' => "No subject found"], 404);
     }
-    public function getsearchedsubject(Request $req)
-    {
-      $searchsubject=$req->searchsubject;
-      // $subject=[];
-      $getsubject=DB::table('subjects')->where('subject_name',$searchsubject)->get();
-     if(count($getsubject)>0){
-      $subject_id=$getsubject[0]->id;
-      $subject_name=$getsubject[0]->subject_name;
-     
-      return response()->json(['subject_id'=>$subject_id,'subject_name'=>$subject_name],202);
-    }
-    else{
-      return response()->json(['msg'=>"No subject found"],404);
-    }
-  
   }
   public function fetchalldata()
   {
-    $users=DB::table('users')->get();
-    $totalusers=count($users);
-    $subjects=DB::table('subjects')->get();
-    $totalsubjects=count($subjects);
-    
-    $questions=DB::table('questions')->get();
-    $totalquestions=count($questions);
-    return response()->json(['totalusers'=>$totalusers,'totalsubjects'=>$totalsubjects,'totalquestions'=>$totalquestions],202);
+    $users = DB::table('users')->get();
+    $totalusers = count($users);
+    $subjects = DB::table('subjects')->get();
+    $totalsubjects = count($subjects);
+
+    $questions = DB::table('questions')->get();
+    $totalquestions = count($questions);
+    return response()->json(['totalusers' => $totalusers, 'totalsubjects' => $totalsubjects, 'totalquestions' => $totalquestions], 202);
   }
   public function fetchtrendingquiz()
   {
     $results = DB::table('responses')
-    ->join('subjects', 'responses.subject_id', '=', 'subjects.id')
-    ->select('responses.subject_id', 'subjects.subject_name', DB::raw('COUNT(responses.subject_id) AS B_count'))
-    ->groupBy('responses.subject_id', 'subjects.subject_name')
-    ->having('B_count', '>', 1)
-    ->orderByDesc('B_count')
-    ->limit(3)
-    ->get();
+      ->join('subjects', 'responses.subject_id', '=', 'subjects.id')
+      ->select('responses.subject_id', 'subjects.subject_name', DB::raw('COUNT(responses.subject_id) AS B_count'))
+      ->groupBy('responses.subject_id', 'subjects.subject_name')
+      ->having('B_count', '>', 1)
+      ->orderByDesc('B_count')
+      ->limit(3)
+      ->get();
     return response()->json($results);
   }
   public function geteditsubjectdetails(Request $req)
   {
-    $subject_id=$req->subject_id;
-    $result=DB::table('subjects')->join('questions','subjects.id','=','questions.subject_id')->join('answers','questions.id','=','answers.question_id')->where('subjects.id',$subject_id)->get();
+    $subject_id = $req->subject_id;
+    $result = DB::table('subjects')->join('questions', 'subjects.id', '=', 'questions.subject_id')->join('answers', 'questions.id', '=', 'answers.question_id')->where('subjects.id', $subject_id)->get();
     return response()->json($result);
   }
   public function updateSubject(Request $req)
   {
-    $subject_id=$req->subject_id;
-   $question_id=$req->question_id;
-   $answer_id=$req->answer_id;
-   $question=$req->question;
-   $option1=$req->option1;
-   $option2=$req->option2;
-   $option3=$req->option3;
-   $option4=$req->option4;
-   $correct_option=$req->correct_option;
-   $updatequestion=DB::table('questions')->where('id',$question_id)->update(['question'=>$question]);
-   $updateanswer=DB::table('answers')->where('id',$answer_id)->update(['option1'=>$option1,'option2'=>$option2,'option3'=>$option3,'option4'=>$option4,'correct_option'=>$correct_option]);
-if($updatequestion || $updateanswer){
-  return response()->json(['msg'=>'Quiz updated succesfully'],202);
-
-}
-else{
-  return response()->json(['msg'=>'Some error occured'],404);
-
-}
-
+    $subject_id = $req->subject_id;
+    $question_id = $req->question_id;
+    $answer_id = $req->answer_id;
+    $question = $req->question;
+    $option1 = $req->option1;
+    $option2 = $req->option2;
+    $option3 = $req->option3;
+    $option4 = $req->option4;
+    $correct_option = $req->correct_option;
+    $updatequestion = DB::table('questions')->where('id', $question_id)->update(['question' => $question]);
+    $updateanswer = DB::table('answers')->where('id', $answer_id)->update(['option1' => $option1, 'option2' => $option2, 'option3' => $option3, 'option4' => $option4, 'correct_option' => $correct_option]);
+    if ($updatequestion || $updateanswer) {
+      return response()->json(['msg' => 'Quiz updated succesfully'], 202);
+    } else {
+      return response()->json(['msg' => 'Some error occured'], 404);
+    }
   }
   public function deleteQuestion(Request $req)
   {
-    $question_id=$req->question_id;
-    $answer_id=$req->answer_id;
-    $delete_question=DB::table('questions')->where('id',$question_id)->delete();
-    $delete_answer=DB::table('answers')->where('id',$answer_id)->delete();
-    if($delete_question && $delete_answer){
-      return response()->json(['msg'=>'Question deleted succesfully'],202);
-    
+    $question_id = $req->question_id;
+    $answer_id = $req->answer_id;
+    $delete_question = DB::table('questions')->where('id', $question_id)->delete();
+    $delete_answer = DB::table('answers')->where('id', $answer_id)->delete();
+    if ($delete_question && $delete_answer) {
+      return response()->json(['msg' => 'Question deleted succesfully'], 202);
+    } else {
+      return response()->json(['msg' => 'Some error occured'], 404);
     }
-    else{
-      return response()->json(['msg'=>'Some error occured'],404);
-    
-    }
-    
-
   }
-  public function deletesubject(Request $req){
+  public function deletesubject(Request $req)
+  {
     // $question_ids=[];
-    $subject_id=$req->subject_id;
-    $query=DB::table('questions')->where('subject_id',$subject_id)->get('id');
-    for($i=0;$i<count($query);$i++){
-      $question_ids=$query[$i]->id;
-      DB::table('answers')->where('question_id',$question_ids)->delete();
-
+    $subject_id = $req->subject_id;
+    $query = DB::table('questions')->where('subject_id', $subject_id)->get('id');
+    for ($i = 0; $i < count($query); $i++) {
+      $question_ids = $query[$i]->id;
+      DB::table('answers')->where('question_id', $question_ids)->delete();
     }
-    $delete_subject=DB::table('subjects')->where('id',$subject_id)->delete();
-    $delete_questions=DB::table('questions')->where('subject_id',$subject_id)->delete();
-return response()->json(['msg'=>'Deleted sucesfully'],200);
+    $delete_subject = DB::table('subjects')->where('id', $subject_id)->delete();
+    $delete_questions = DB::table('questions')->where('subject_id', $subject_id)->delete();
+    return response()->json(['msg' => 'Deleted sucesfully'], 200);
   }
+  public function subscribe(Request $req)
+  {
+    $email_address = $req->email_address;
+    $check = DB::table('subscribers')->where('email_address', $email_address)->get();
+    if (count($check) > 0) {
+      return response()->json(['msg' => 'Email is already subscribed'], 202);
+    } else {
+      $insert_record = DB::table('subscribers')->insert(['email_address' => $email_address]);
+      if ($insert_record) {
+        return response()->json(['msg' => 'Subscription added succesfully'], 200);
+      }
+    }
+  }
+  public function getsubscriberdetails()
+  {
+    $subscribers=DB::table('subscribers')->get();
+    return response()->json($subscribers);
+  }
+  public function sendmail(Request $req)
+  {
+      $content = $req->content;
+      $to = $req->to;
+      $subject = $req->subject;
+      // return response()->json($content);
+  
+      try {
+          Mail::to($to)->send(new Mymail($content, $to, $subject));
+          
+          return response()->json(['msg' => 'Email sent successfully'], 200);
+      } catch (\Exception $e) {
+          return response()->json(['msg' => 'Error sending email', 'error' => $e->getMessage()], 500);
+      }
+  }
+  
 }

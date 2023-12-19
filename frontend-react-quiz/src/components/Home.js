@@ -26,6 +26,7 @@ const Home = () => {
   const [totalusers, setTotalUsers] = useState('');
   const [totalsubjects, setTotalSubjects] = useState('');
   const [totalquestions, setTotalQuestions] = useState('');
+  const[usermail,setUsermail]=useState('');
 
 
 
@@ -46,6 +47,36 @@ const Home = () => {
       console.error("Error fetching subjects:", error);
     }
   };
+  const subscribe=async(event)=>{
+    event.preventDefault();
+    if(usermail=="")
+    {
+      toastr.error("Kindly enter email address")
+    }
+    // alert(usermail)
+  
+      const response=await fetch(
+        "http://127.0.0.1:8000/api/subscribe",{
+          method:"POST",
+          headers:{
+            "Content-type":"application/json"
+          },
+          body:JSON.stringify({
+           email_address:usermail
+          })
+        }
+      );
+      const result= await response.json();
+      if(response.status==200){
+        toastr.success(result.msg)
+      }
+      if(response.status==202){
+  toastr.error(result.msg)
+}
+      
+
+   
+  }
 
 
   const fetchalldata = async () => {
@@ -766,8 +797,8 @@ else{
                   <h4 className="foot-h4">Reach Us</h4>
                   <p>
                     {" "}
-                    <i class="fa-solid fa-map-location-dot"></i> Coimbtoore,
-                    tamilnadu India
+                    <i class="fa-solid fa-map-location-dot"></i> Coding Brains,
+                    Lucknow, India
                   </p>
                   <div className="subs">
                     <h4 className="foot-h4">Subscribe</h4>
@@ -779,9 +810,11 @@ else{
                       <input
                         type="text"
                         placeholder="Enter Email"
+                        value={usermail}
+                        onChange={(e)=>setUsermail(e.target.value)}
                         class="form-control"
                       ></input>
-                      <button type="submit">
+                      <button onClick={subscribe}>
                         <i class="fa-solid fa-paper-plane"></i>
                       </button>
                     </form>

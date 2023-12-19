@@ -60,6 +60,19 @@ const Adminsidebar = () => {
           <ListItemText primary="Add Question" />
         </ListItem>
       </List>
+      <List>
+        <ListItem
+          button
+          component={Link}
+          to="/addmessage"
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <IconButton sx={{ color: "inherit" }}>
+            <AssessmentIcon />
+          </IconButton>
+          <ListItemText primary="Add Message for subscriber" />
+        </ListItem>
+      </List>
       <Divider sx={{ backgroundColor: "white", margin: "20px 0" }} />
       <List>
         <ListItem

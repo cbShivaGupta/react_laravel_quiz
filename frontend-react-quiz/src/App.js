@@ -1,4 +1,4 @@
-import react from "react";
+import react,{ Component } from "react";
 import Header from "./components/Header";
 import Home from "./components/Home";
 import Contact from "./components/Contact";
@@ -23,6 +23,10 @@ import Adminsidebar from "./components/Adminsidebar";
 import Entryheader from "./components/Entryheader";
 import Addsubject from "./components/Addsubject";
 import Editsubject from "./components/Editsubject";
+import Addmessage from "./components/Addmessage";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
 
 
 import ChatBox from "./components/ChatBox";
@@ -68,6 +72,8 @@ function App() {
           <Route path="chatbox" element={<ChatBox />} />
           <Route path="admindashboard" element={<Admindashboard />} />
           <Route path="forgetpassword" element={<Forgetpassword />} />
+          <Route path="addmessage" element={<Addmessage />} />
+
           {/* <Route path="logout" element={<Logout />} /> */}
 
 

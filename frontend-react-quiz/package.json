@@ -3,11 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^40.2.0",
+    "@ckeditor/ckeditor5-react": "^6.2.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.16",
     "@mui/material": "^5.14.18",
     "@mui/system": "^5.14.18",
+    "@react-google-maps/api": "^2.19.2",
     "@react-oauth/google": "^0.11.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -20,11 +23,13 @@
     "react-dom": "^18.2.0",
     "react-flow-renderer": "^10.3.17",
     "react-google-login": "^5.2.2",
+    "react-modal": "^3.16.1",
     "react-router-dom": "^6.18.0",
     "react-scripts": "5.0.1",
     "react-time-picker": "^6.5.2",
     "reactflow": "^11.9.4",
     "toastr": "^2.1.4",
+    "use-places-autocomplete": "^4.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

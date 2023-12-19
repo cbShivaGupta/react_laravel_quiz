@@ -124,11 +124,11 @@ function Header() {
                   <li>Have any question? +123 456 7890</li>
                   <li>
                     <i class="fas fa-envelope-open mx-2"></i>
-                    Info@gmail.com
+                    codingbrains8@gmail.com
                   </li>
                   <li>
                     <i class="fas fa-clock mx-2"></i>
-                    Sun - Thu <span>8:00 - 16:00</span>
+                    Mon - Fri <span>15:00 - 24:00</span>
                   </li>
                 </ul>
               </div>

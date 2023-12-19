@@ -47,6 +47,15 @@ Route::post('/geteditsubjectdetails',[Bookcontroller::class,'geteditsubjectdetai
 Route::post('/updateSubject',[Bookcontroller::class,'updateSubject']);
 Route::post('/deleteQuestion',[Bookcontroller::class,'deleteQuestion']);
 Route::post('/deletesubject',[Bookcontroller::class,'deletesubject']);
+Route::post('/subscribe',[Bookcontroller::class,'subscribe']);
+Route::get('/getsubscriberdetails',[Bookcontroller::class,'getsubscriberdetails']);
+Route::post('/sendmail',[Bookcontroller::class,'sendmail']);
+
+
+
+
+
+
 
 
 
