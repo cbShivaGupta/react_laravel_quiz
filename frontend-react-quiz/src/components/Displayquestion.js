@@ -36,8 +36,13 @@ const DisplayQuestion = () => {
   const [selectedValues, setSelectedValues] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [timer, setTimer] = useState([]);
+  const [fulltime, setfullTime] = useState([]);
+
   const [isVisible, setVisible] = useState(false);
+  const [isbuttonVisible, setisbuttonVisible] = useState(true);
+
   const [timerId, setTimerId] = useState(null);
+  const[time,setTime]=useState('');
 
   const fetchQuestions = async () => {
     try {
@@ -71,6 +76,7 @@ const DisplayQuestion = () => {
   
       if (contentType && contentType.includes("application/json")) {
         const timeString = await response.json();
+        setfullTime(timeString)
         console.log("Fetched quiz time:", timeString); // Add this line for debugging
   
         let timeArray = timeString.split(":");
@@ -96,11 +102,15 @@ const DisplayQuestion = () => {
     const fetchData = async () => {
       await fetchQuestions();
       const quiztime = await fetchTime();
+    
       setTimer(quiztime);
+      // setTime(quiztime)
     };
 
     fetchData();
   }, [selectedSubject]);
+
+  
 
   const handleRadioChange = (index, value) => {
     setSelectedValues((prevSelectedValues) => {
@@ -112,29 +122,51 @@ const DisplayQuestion = () => {
 
   const startQuiz = async () => {
     try {
-      setVisible(!isVisible);
-
+      setisbuttonVisible(false);
+  
       // Fetch quiz time
       const quiztime = await fetchTime();
-
-      if (quiztime > 0) {
-        const timeridentity = setTimeout(() => {
-          handleSubmit();
-        }, quiztime);
-        setTimerId(timeridentity);
-      } else {
-        console.error("Invalid timer value:", quiztime);
-      }
+      setTime(quiztime);
+  
+      const timerInterval = setInterval(() => {
+        setTime((prevTime) => {
+          if (prevTime <= 0) {
+            clearInterval(timerInterval);
+            handleSubmit();
+            return 0;
+          }
+          return prevTime - 1000;
+        });
+      }, 1000);
+  
+      // Save the timerInterval ID so we can clear it later
+      setTimerId(timerInterval);
+  
+      setVisible(!isVisible);
     } catch (error) {
       console.error("Error starting quiz:", error);
     }
   };
+  
+  const getformattedtime=(milliseconds)=>{
+    const totalformattedseconds=parseInt(Math.floor(milliseconds/1000))
+    const totalformattedminutes=parseInt(Math.floor(totalformattedseconds/60))
+    const totalformattedhours=parseInt(Math.floor(totalformattedminutes/60))
+    const loopseconds=parseInt(Math.floor(totalformattedseconds%60))
+    const loopminutes=parseInt(Math.floor(totalformattedminutes%60))
+    const loophours=parseInt(Math.floor(totalformattedhours%24))
+    // return `${milliseconds}`
+    return `${loophours}:${loopminutes}:${loopseconds}`
+
+
+
+  }
 
   const handleSubmit = async () => {
     clearTimeout(timerId);
 
     setSubmitted(true);
-    console.log(selectedValues)
+    console.log('text',selectedValues)
     const user_id = localStorage.getItem("userid");
 
     const apiUrl = "http://127.0.0.1:8000/api/submitresponse";
@@ -153,21 +185,24 @@ const DisplayQuestion = () => {
 
     const data2 = await response.json();
     if (response.status === 200) {
-      alert(data2.msg);
+      toastr.success(data2.msg);
+      setSubmitted(false)
     }
   };
 
   return (
     <>
-      <Button onClick={startQuiz}>Start Quiz</Button>
-      {isVisible && (
+     { isbuttonVisible && (<p>You have {fulltime}  to attempt all questions.Click on the button below to start the quiz <br/><Button onClick={startQuiz}>Start Quiz</Button></p>)}
+      {isVisible   && (
         <div>
+
           <Grid container>
             <Grid item xs={1.8}>
               <Sidebar user_id={user_id} />
             </Grid>
             <Grid item xs={9}>
               <Container maxWidth="md">
+               <p>Total time remaining:<p style={{fontSize:"30px"}} >{getformattedtime(time)}</p></p>
                 <Paper
                   elevation={3}
                   style={{ padding: "20px", marginTop: "20px" }}
