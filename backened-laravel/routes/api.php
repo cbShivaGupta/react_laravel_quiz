@@ -50,6 +50,22 @@ Route::post('/deletesubject',[Bookcontroller::class,'deletesubject']);
 Route::post('/subscribe',[Bookcontroller::class,'subscribe']);
 Route::get('/getsubscriberdetails',[Bookcontroller::class,'getsubscriberdetails']);
 Route::post('/sendmail',[Bookcontroller::class,'sendmail']);
+Route::post('/fetchprofile',[Bookcontroller::class,'fetchprofile']);
+Route::post('/updateprofile',[Bookcontroller::class,'updateprofile']);
+Route::post('/updatesubjecttime',[Bookcontroller::class,'updatesubjecttime']);
+
+Route::post('/fetchuserperformance',[Bookcontroller::class,'fetchuserperformance']);
+Route::post('/fetchalluserperformance',[Bookcontroller::class,'fetchalluserperformance']);
+Route::get('/fetcallrecords',[Bookcontroller::class,'fetcallrecords']);
+
+
+
+
+
+
+
+
+
 
 
 

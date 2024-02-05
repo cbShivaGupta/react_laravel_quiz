@@ -1,117 +1,71 @@
-// import React from "react";
-// import { NavLink } from "react-router-dom";
-// import Toolbar from "@mui/material/Toolbar";
-// import IconButton from "@mui/material/IconButton";
-// import MenuIcon from "@mui/icons-material/Menu";
-// import SearchIcon from "@mui/icons-material/Search";
-// import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-// import { Link } from "react-router-dom";
-// import { AppBar } from "@mui/material";
-// import GoogleIcon from "@mui/icons-material/Google";
-
-// import ChatIcon from "@mui/icons-material/Chat";
-
-// const Entryheader = () => {
-//   return (
-//     <>
-//       <AppBar position="fixed">
-//         <Toolbar style={{ backgroundColor: "#1976d2" }}>
-//           {/* Icon on the left */}
-//           <IconButton edge="start" color="inherit" aria-label="menu">
-//             <MenuIcon />
-//           </IconButton>
-
-//           {/* Icons in the middle (flexible space around them) */}
-//           <div style={{ flexGrow: 1 }}>
-//             <IconButton color="inherit" aria-label="search">
-//               <SearchIcon />
-//             </IconButton>
-//           </div>
-
-//           {/* Icon on the right */}
-//           <IconButton color="inherit" aria-label="account">
-//             <Link to="/login">
-//               <AccountCircleIcon />
-//             </Link>
-//           </IconButton>
-//         </Toolbar>
-//       </AppBar>
-//     </>
-//   );
-// };
-
-// export default Entryheader;
-
-
-// import React from "react";
-// import { NavLink } from "react-router-dom";
-// import Toolbar from '@mui/material/Toolbar';
-// import IconButton from '@mui/material/IconButton';
-// import MenuIcon from '@mui/icons-material/Menu';
-// import SearchIcon from '@mui/icons-material/Search';
-// import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-// import { Link } from 'react-router-dom';
-
-// const Entryheader = () => {
-//   return (<>
-//    <Toolbar style={{backgroundColor:"#1976d2"}}>
-//       {/* Icon on the left */}
-//       <IconButton edge="start" color="inherit" aria-label="menu">
-//         <MenuIcon />
-//       </IconButton>
-
-//       {/* Icons in the middle (flexible space around them) */}
-//       <div style={{ flexGrow: 1 }}>
-//         <IconButton color="inherit" aria-label="search">
-//           <SearchIcon />
-//         </IconButton>
-//       </div>
-
-//       {/* Icon on the right */}
-//       <IconButton color="inherit" aria-label="account">
-
-//         <Link to='/login'><AccountCircleIcon /></Link>
-//       </IconButton>
-//     </Toolbar>
-//     </>  );
-// };
-
-// export default Entryheader;
 import * as React from "react";
-import "../custom.css";
+import { Link } from "react-router-dom";
 
-function Header() {
+import { useState, useEffect } from "react";
+
+import "../custom.css";
+import config from '../config';
+
+
+const Header = () => {
+
+  const [file, setFile] = useState(null);
+  const [myuserid, setMyUserid] = useState(null);
+  const baseUrl = window.location.origin;
+  const apiUrl = config.backendUrl;
+
+
+// alert(baseUrl)
+
+
   const fixNav = document.querySelector(".cst-main-header");
   const scrollTrigger = window.scrollY;
+  const uid = localStorage.getItem("user_token");
+
+  const role = localStorage.getItem("role");
+  const username = localStorage.getItem("username");
+  const userid = localStorage.getItem("userid");
 
 
-  const handleLogout = () => {
-    // Clear the value in local storage
-    localStorage.removeItem("user_token");
 
-    // You can also perform any other logout-related actions here
-    // For example, redirecting the user to the login page
-    window.location.href = "/login"; // Replace with your actual logout or redirection logic
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/fetchprofile`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          userid: userid,
+        }),
+      });
+      const res = await response.json();
+     
+
+      if (res.userpic !== null) {
+      
+        setFile(res.backenedbaseurl+'/uploads/'+ res.userpic);
+      }
+      else{
+     
+        setFile(baseUrl+'/images/dummy3.jpg');
+
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } 
   };
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
-  // window.addEventListener("scroll", () => {
-  //   if (window.scrollY > scrollTrigger) {
-  //     fixNav.classList.add("fix-header");
-  //   } else {
-  //     fixNav.classList.remove("fix-header");
-  //   }
-  // });
+  
 
-  // const headerEl = document.querySelector(".cst-main-header");
-  // const scrollThreshold = 500;
-  // window.onscroll = function () {
-  //   if (window.scrollY >= scrollThreshold) {
-  //     headerEl.classList.add("fix-header");
-  //   } else {
-  //     headerEl.classList.remove("fix-header");
-  //   }
-  // };
+  const handleLogout = () => {
+    localStorage.removeItem("user_token");
+    window.location.href = "/login"; // Replace with your actual logout or redirection logic
+  };
 
   return (
     <div className="position-relative">
@@ -170,7 +124,7 @@ function Header() {
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="/attemptquiz">
                   Course
                 </a>
               </li>
@@ -187,16 +141,25 @@ function Header() {
             </ul>
           </div>
           <div class="dropdown profile-drop">
-            <i
-              data-bs-toggle="dropdown"
+         
+{uid ?(<img data-bs-toggle="dropdown"
               aria-expanded="false"
-              class="fa-regular fa-circle-user"
-            ></i>
+              class="fa-regular fa-circle-user" style={{width:"100px",height:"90px"}} src={file}/>):(<i
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                class="fa-regular fa-circle-user"
+              ></i>)}
+
+             
+            
+      <b>{uid?(username):""}</b>
 
             <ul class="dropdown-menu cst-profile-menu py-0">
               <li>
                 <a class="dropdown-item border-bottom" href="#">
-                  <i class="mx-2 fa-regular fa-user"></i> Profile
+                  <i class="mx-2 fa-regular fa-user"></i> 
+                  
+                 <Link to='/userprofile'>Profile</Link> 
                 </a>
               </li>
               <li>
@@ -205,10 +168,21 @@ function Header() {
                 </a>
               </li>
               <li>
-            
-              <button  class="dropdown-item text-danger" onClick={handleLogout}>   
-                  <i class="mx-2 fa-solid fa-right-from-bracket"></i> Logout
-                </button>
+                {uid ? (
+                  <button
+                    class="dropdown-item text-danger"
+                    onClick={handleLogout}
+                  >
+                    <i class="mx-2 fa-solid fa-right-from-bracket"></i> Logout
+                  </button>
+                ) : (
+                  <button
+                    class="dropdown-item text-danger"
+                    onClick={handleLogout}
+                  >
+                    <i class="mx-2 fa-solid fa-right-from-bracket"></i> Login
+                  </button>
+                )}
               </li>
             </ul>
           </div>
@@ -216,6 +190,5 @@ function Header() {
       </nav>
     </div>
   );
-}
+};
 export default Header;
-

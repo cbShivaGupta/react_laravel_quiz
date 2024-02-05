@@ -1,93 +1,80 @@
-// Adminsidebar.js
-import React from "react";
+import React, { useState } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
+// import { Link } from "react-router-dom";
+import "../App.css";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import AssessmentIcon from "@mui/icons-material/Assessment";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import { NavLink } from 'react-router-dom';
 
-const Adminsidebar = () => {
-  const handleLogout = () => {
-    // Clear the value in local storage
-    localStorage.removeItem("user_token");
 
-    // You can also perform any other logout-related actions here
-    // For example, redirecting the user to the login page
-    window.location.href = "/login"; // Replace with your actual logout or redirection logic
-  };
 
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        justifyContent: "flex-start",
-        height: "100vh",
-        width: "250px", // Set a fixed width for the sidebar
-        backgroundColor: "#1976d2",
-        padding: "20px",
-        color: "white",
-      }}
-    >
-        <List>
-        <ListItem
-          button
-          component={Link}
-          to="/addsubject"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <IconButton sx={{ color: "inherit" }}>
-            <AssessmentIcon />
-          </IconButton>
-          <ListItemText primary="Add Subject" />
-        </ListItem>
-      </List>
-      <List>
-        <ListItem
-          button
-          component={Link}
-          to="/addquestion"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <IconButton sx={{ color: "inherit" }}>
-            <AssessmentIcon />
-          </IconButton>
-          <ListItemText primary="Add Question" />
-        </ListItem>
-      </List>
-      <List>
-        <ListItem
-          button
-          component={Link}
-          to="/addmessage"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <IconButton sx={{ color: "inherit" }}>
-            <AssessmentIcon />
-          </IconButton>
-          <ListItemText primary="Add Message for subscriber" />
-        </ListItem>
-      </List>
-      <Divider sx={{ backgroundColor: "white", margin: "20px 0" }} />
-      <List>
-        <ListItem
-          button
-          onClick={handleLogout}
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <IconButton sx={{ color: "inherit" }}>
-            <ExitToAppIcon />
-          </IconButton>
-          <ListItemText primary="Logout" />
-        </ListItem>
-      </List>
-    </Box>
-  );
-};
+const Usersidebar = ({ user_id }) => {
+    const handleLogout = () => {
+      // Clear the value in local storage
+      localStorage.removeItem("user_token");
+  
+      // You can also perform any other logout-related actions here
+      // For example, redirecting the user to the login page
+      window.location.href = "/login"; // Replace with your actual logout or redirection logic
+    };
 
-export default Adminsidebar;
+    // const [openSidebar, setOpenSidebar] = useState(true);
+
+    // const sidebarToggler = () => {
+    //   setOpenSidebar(!openSidebar);
+    // };
+  
+    // useEffect(() => {
+    //   const resizeSidebar = () => {
+    //     if (window.innerWidth <= 1200 && openSidebar) {
+    //       setOpenSidebar(false);
+    //     }
+    //   };
+    //   window.addEventListener("resize", resizeSidebar);
+    //   return () => {
+    //     window.removeEventListener("resize", resizeSidebar);
+    //   };
+    // }, [openSidebar]);
+  
+    return (<>
+
+
+<div className="asideBrand">LOGO</div>
+<div className="asideLinks">
+  <NavLink to={`/admindashboard`} activeClassName="active">
+    <div className="asideIcon">
+      <i class="fa-solid fa-gauge-high"></i>
+    </div>
+    <span>Dashboard</span>
+  </NavLink>
+
+  <NavLink to={`/addsubject`} activeClassName="active">
+    <div className="asideIcon">
+      <i class="fa-solid fa-house"></i>
+    </div>
+    <span>Add Subject</span>
+  </NavLink>
+
+  <NavLink to={`/addquestion`} activeClassName="active">
+    <div className="asideIcon">
+      <i class="fa-solid fa-folder-closed"></i>
+    </div>
+    <span>Subject Management</span>
+  </NavLink>
+  <NavLink to={`/addmessage`} activeClassName="active">
+    <div className="asideIcon">
+      <i class="fa-solid fa-folder-closed"></i>
+    </div>
+    <span>Message subscriber</span>
+  </NavLink>
+
+  <NavLink to={`/adminprofile`} activeClassName="active">
+    <div className="asideIcon">
+      <i class="fa-solid fa-user"></i>
+    </div>
+    <span>Profile</span>
+  </NavLink>
+</div>
+
+</>  )};
+    export default Usersidebar;

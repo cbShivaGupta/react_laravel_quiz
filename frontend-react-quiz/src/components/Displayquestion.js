@@ -1,8 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import toastr from "toastr";
-import "toastr/build/toastr.min.css";
+import config from '../config';
+import Dropdown from "react-bootstrap/Dropdown";
+import "../App.css";
+import Usersidebar from "./Usersidebar";
+import Userheader from "./Userheader";
+import Modal from 'react-modal';
+
+
 import {
   Typography,
   Paper,
@@ -13,18 +19,41 @@ import {
   Container,
   Grid,
 } from "@mui/material";
+import toastr from "toastr";
+import "toastr/build/toastr.min.css";
 
 const user_id = localStorage.getItem("userid");
 
 const DisplayQuestion = () => {
   const uid = localStorage.getItem("user_token");
   const role = localStorage.getItem("role");
+  const apiUrl = config.backendUrl;
+
 
   if (uid && role === "2") {
     // Do something for authenticated users with role 2
   } else {
     window.location.href = "/login";
   }
+
+  const [openSidebar, setOpenSidebar] = useState(true);
+
+  const sidebarToggler = () => {
+    setOpenSidebar(!openSidebar);
+  };
+
+  useEffect(() => {
+    const resizeSidebar = () => {
+      if (window.innerWidth <= 1200 && openSidebar) {
+        setOpenSidebar(false);
+      }
+    };
+    window.addEventListener("resize", resizeSidebar);
+    return () => {
+      window.removeEventListener("resize", resizeSidebar);
+    };
+  }, [openSidebar]);
+
 
   const { selectedSubject } = useParams();
 
@@ -40,16 +69,19 @@ const DisplayQuestion = () => {
   const [isButtonVisible, setIsButtonVisible] = useState(true);
   const [fulltime, setFullTime] = useState([]);
   const selectedValuesRef = useRef(selectedValues);
+  const timerHandledRef = useRef(false);
+  const [quizStarted, setQuizStarted] = useState(false);
 
   const fetchQuestions = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/getquestions?subject=${selectedSubject}`
+        `${apiUrl}/getquestions?subject=${selectedSubject}`
       );
       const contentType = response.headers.get("content-type");
 
       if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
+
         setQuestions(data);
         setSelectedValues(Array(data.length).fill(""));
       } else {
@@ -66,12 +98,13 @@ const DisplayQuestion = () => {
   const fetchTime = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/fetchtime?subject=${selectedSubject}`
+        `${apiUrl}/fetchtime?subject=${selectedSubject}`
       );
       const contentType = response.headers.get("content-type");
 
       if (contentType && contentType.includes("application/json")) {
         const timeString = await response.json();
+
         setFullTime(timeString);
 
         let timeArray = timeString.split(":");
@@ -101,6 +134,10 @@ const DisplayQuestion = () => {
   useEffect(() => {
     const fetchData = async () => {
       await fetchQuestions();
+      try {
+      } catch (error) {
+        console.error("Error fetching quiz time:", error);
+      }
     };
 
     fetchData();
@@ -110,28 +147,53 @@ const DisplayQuestion = () => {
     selectedValuesRef.current = selectedValues;
   }, [selectedValues]);
 
-  const startQuiz = async () => {
-    try {
-      const quiztime = await fetchTime();
-      setTime(quiztime);
-      setIsButtonVisible(false);
-      setVisible(true);
 
-      const intervalId = setInterval(() => {
-        setTime((prevTime) => {
-          if (prevTime === 0) {
-            clearInterval(intervalId);
-            handleSubmit(selectedValuesRef.current);
-            return 0;
-          }
-          return prevTime - 1000;
-        });
-      }, 1000);
-      setTimerId(intervalId);
-    } catch (error) {
-      console.error("Error starting quiz:", error);
-    }
-  };
+
+  useEffect(() => {
+    const startQuiz = async () => {
+      try {
+        if (quizStarted) {
+          return;
+        }
+  
+        setQuizStarted(true);
+  
+        const quiztime = await fetchTime();
+        setTime(quiztime);
+        setIsButtonVisible(false);
+        setVisible(true);
+  
+        const intervalId = setInterval(() => {
+          setTime((prevTime) => {
+            if (prevTime === 0) {
+              clearInterval(intervalId);
+              setTimerId(null);
+  
+              // Check if the function has already been called
+              if (!timerHandledRef.current) {
+                timerHandledRef.current = true;
+                handleSubmit(selectedValuesRef.current);
+              }
+  
+              return 0; // Return 0 to stop further decrements
+            }
+            return prevTime - 1000;
+          });
+        }, 1000);
+        setTimerId(intervalId);
+      } catch (error) {
+        console.error("Error starting quiz:", error);
+      }
+    };;
+
+    startQuiz();
+  }, []);
+
+
+
+
+
+
 
   const getFormattedTime = (milliseconds) => {
     const totalFormattedSeconds = parseInt(Math.floor(milliseconds / 1000));
@@ -150,10 +212,10 @@ const DisplayQuestion = () => {
   const handleSubmit = async (selectedValue) => {
     try {
       const user_id = localStorage.getItem("userid");
-      const apiUrl = "http://127.0.0.1:8000/api/submitresponse";
+      const apiUrl1 = `${apiUrl}/submitresponse`;
       const selectedVal = selectedValue;
 
-      const response = await fetch(apiUrl, {
+      const response = await fetch(apiUrl1, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -184,28 +246,69 @@ const DisplayQuestion = () => {
   };
 
   return (
+
+
     <>
-      {isAfterSubmit && (
+    <div className={`mainLayout ${openSidebar ? "openSidebar" : ""}`}>
+      <aside className={`leftSidebar ${openSidebar ? "" : "close"}`}>
+        {/* <div className="asideBrand">LOGO</div>
+        <div className="asideLinks">
+          <Link className="active">
+            <div className="asideIcon">
+              <i class="fa-solid fa-gauge-high"></i>
+            </div>
+            <span>Dashboard</span>
+          </Link>
+
+          <Link>
+            <div className="asideIcon">
+              <i class="fa-solid fa-house"></i>
+            </div>
+            <span>Home</span>
+          </Link>
+
+          <Link>
+            <div className="asideIcon">
+              <i class="fa-solid fa-folder-closed"></i>
+            </div>
+            <span>Test</span>
+          </Link>
+
+          <Link>
+            <div className="asideIcon">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <span>Profile</span>
+          </Link>
+        </div> */}
+        <Usersidebar />
+
+      </aside>
+      <div className="mainContent">
+        <nav>
+        <Userheader/>
+        </nav>
+        <main>
+
+        {isAfterSubmit && (
         <div>
           <p style={{ fontSize: "30px" }}>
-            Your response has been submitted successfully.
+            Your response has been submitted successfully
           </p>
         </div>
       )}
-      {!isAfterSubmit && isButtonVisible && (
+      {/* {!isAfterSubmit && isButtonVisible && (
         <p>
           You have {fulltime} to attempt all questions. Click on the button
           below to start the quiz <br />
           <Button onClick={startQuiz}>Start Quiz</Button>
         </p>
-      )}
+      )} */}
       {!isAfterSubmit && isVisible && (
         <div>
           <Grid container>
-            <Grid item md={1.8}>
-              <Sidebar user_id={user_id} />
-            </Grid>
-            <Grid item md={9}>
+           
+            <Grid item xs={9}>
               <Container maxWidth="md">
                 <p>
                   Total time remaining:
@@ -326,7 +429,32 @@ const DisplayQuestion = () => {
           </Grid>
         </div>
       )}
-    </>
+      
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      </main>
+      </div>
+    </div>
+  </>
+
+    
   );
 };
 

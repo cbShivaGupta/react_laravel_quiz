@@ -15,11 +15,15 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import config from '../config';
+
 
 // const defaultTheme = createTheme();
 
 const Register = () => {
   const navigate = useNavigate();
+  const apiUrl = config.backendUrl;
+
 
   const [formData, setFormData] = useState({
     fname: "",
@@ -47,7 +51,7 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/register", {
+      const response = await fetch(`${apiUrl}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

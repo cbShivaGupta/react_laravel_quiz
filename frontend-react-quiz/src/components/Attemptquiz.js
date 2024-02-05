@@ -7,12 +7,14 @@ import {
   Button,
   Box,
 } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import { Container, Row, Col, Card, CardBody, Form } from "react-bootstrap";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
-import { useNavigate  } from 'react-router-dom';
-
+import { useNavigate } from "react-router-dom";
+import config from "../config";
+import Usersidebar from "./Usersidebar";
+import Userheader from "./Userheader";
+import Modal from 'react-modal';
 
 
 const AttemptQuiz = () => {
@@ -20,24 +22,39 @@ const AttemptQuiz = () => {
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
 
-
-  if (uid && role == 2) {
-  } else {
+  if (!(uid && role == 2)) {
     window.location.href = "/login";
   }
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
+
+  const [openSidebar, setOpenSidebar] = useState(true);
+
+  const sidebarToggler = () => {
+    setOpenSidebar(!openSidebar);
+  };
+
+  useEffect(() => {
+    const resizeSidebar = () => {
+      if (window.innerWidth <= 1200 && openSidebar) {
+        setOpenSidebar(false);
+      }
+    };
+    window.addEventListener("resize", resizeSidebar);
+    return () => {
+      window.removeEventListener("resize", resizeSidebar);
+    };
+  }, [openSidebar]);
+
   const user_id = localStorage.getItem("userid");
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [questions, setQuestions] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const apiUrl = config.backendUrl;
 
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/subjectforquiz"
-        );
+        const response = await fetch(`${apiUrl}/subjectforquiz`);
         const data = await response.json();
         setSubjects(data);
       } catch (error) {
@@ -48,22 +65,16 @@ const AttemptQuiz = () => {
     fetchSubjects();
   }, []); // Empty dependency array ensures that this effect runs once on mount
 
-  const handleSubjectChange = (event) => {
-    setSelectedSubject(event.target.value);
-  };
-  const checkpreviousattempstatus=async()=>{
-    // alert(user_id)
+  const checkPreviousAttemptStatus = async () => {
     // alert(selectedSubject)
-    const response = await fetch("http://127.0.0.1:8000/api/checkpreviousattempstatus", {
+    const response = await fetch(`${apiUrl}/checkpreviousattempstatus`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         user_id: user_id,
-        // record_date: recordDate,
         selected_subject: selectedSubject,
-       
       }),
     });
 
@@ -71,79 +82,119 @@ const AttemptQuiz = () => {
 
     if (contentType && contentType.includes("application/json")) {
       const data = await response.json();
-    // alert(data.msg)
-    // alert(response.status)
-    if(response.status==202)
-    {
-      // alert(response.status)
-      toastr.error(data.msg)
-    }
-    else{
-      // alert('in else')
-      const route = `/quiz/${selectedSubject}`;
-      // const history = useHistory();
 
+      if (response.status === 202) {
+        toastr.error(data.msg);
+      } else {
+        const route = `/quiz/${selectedSubject}`;
+        navigate(route);
+      }
+    }
+  };
+  const handleSubjectChange = (event,id) => {
+    event.preventDefault();
+    // alert(id)
+    setSelectedSubject(id);
+    setIsModalOpen(true);
 
-      // Use the history object to navigate to the route
-      navigate(route);
-    }
-    }
+    
+
+    // alert(selectedSubject)
+   
+
+    // checkPreviousAttemptStatus();
+  };
+
+  const startQuiz=(id)=>{
+    // setIsModalOpen(false);
+    const route = `/quiz/`+id;
+    navigate(route);
+  }
+  const closeModal=()=>{
+    setIsModalOpen(false);
   }
 
   const handleStartQuiz = () => {
-    // Perform any actions needed before starting the quiz
     console.log(`Starting quiz for subject ID: ${selectedSubject}`);
   };
-
+  const modalStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      width: '50%', // Adjust the width as needed
+      maxHeight: '70%', // Adjust the maxHeight as needed
+      overflow: 'auto',
+    },
+  };
   return (
-    <Box sx={{ display: "flex", height: "100vh" }}>
-      <Sidebar user_id={user_id} />
-      <Box p={3} flexGrow={1}>
-        <FormControl fullWidth>
-          <InputLabel htmlFor="subject-select">Select Subject</InputLabel>
-          <Select
-            label="Select Subject"
-            id="subject-select"
-            value={selectedSubject}
-            onChange={handleSubjectChange}
-          >
-            {subjects.map((subject) => (
-              <MenuItem key={subject.id} value={subject.id}>
-                {subject.subject_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+    <>
 
-        {questions.length > 0 && (
-          <div>
-            {/* Render questions and answers here */}
-            {questions.map((question) => (
-              <div key={question.question_id}>
-                <p>{question.question}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <Button
-          variant="contained"
-          color="primary"
-          style={{ marginTop: "20px" }}
-          // onClick={handleStartQuiz}
-          disabled={!selectedSubject}
-          onClick={checkpreviousattempstatus}
-        >
-          {/* Use Link outside of the Button component */}
-          {/* <Link
-            to={`/quiz/${selectedSubject}`}
-            style={{ textDecoration: "none", color: "white" }}
-          > */}
-            Start Quiz
-          {/* </Link> */}
-        </Button>
-      </Box>
-    </Box>
+<Modal
+    isOpen={isModalOpen}
+    onRequestClose={closeModal}
+    style={modalStyles}
+    contentLabel="Quiz Modal"
+  >
+    <p>
+      This quiz has alloted time within which you have to attempt it.The timer along with quiz will start when you click on button below.
+      Click on the button below to start the quiz.
+    </p>
+    <Button onClick={()=>startQuiz(selectedSubject)}>Start Quiz</Button>
+ 
+  </Modal>
+      <div className={`mainLayout ${openSidebar ? "openSidebar" : ""}`}>
+        <aside className={`leftSidebar ${openSidebar ? "" : "close"}`}>
+          <Usersidebar />
+        </aside>
+        <div className="mainContent">
+          <nav>
+            <Userheader />
+          </nav>
+          <main className="cst-main">
+            <Container fluid>
+              <Row>
+                <Col lg="12">
+                  <div className="quizAttempt">
+                    <Card>
+                      <CardBody>
+                        <div className="card-head">Attempt Quiz</div>
+                        <Form>
+                          <Col className="boxes d-flex flex-wrap">
+                            {subjects.map((subject) => (
+                              <div className="main-box" key={subject.id}>
+                                <div className="box-icon">
+                                  <i className="fa-regular fa-folder-open"></i>
+                                  <span>{subject.subject_name}</span>
+                                </div>
+                                <div className="box-btn pt-3 border-top">
+                                  <button
+                                    onClick={(event) =>
+                                      handleSubjectChange(event,subject.id)
+                                    }
+                                    className="myBtn cardBtn"
+                                  >
+                                    <i className="fa-solid fa-check me-1" />{" "}
+                                    Select Quiz
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </Col>
+                        </Form>
+                      </CardBody>
+                    </Card>
+                  </div>
+                </Col>
+              </Row>
+            </Container>
+          </main>
+        </div>
+      </div>
+    </>
   );
 };
 

@@ -1,10 +1,26 @@
-// YourApp.js
 import React, { useState, useEffect } from 'react';
-import RichTextEditor from './RichTextEditor'; // Ensure the correct path
+import RichTextEditor from './RichTextEditor';
 import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
-import toastr from "toastr";
-import "toastr/build/toastr.min.css";
+import toastr from 'toastr';
+import config from '../config';
+
+import 'toastr/build/toastr.min.css';
+import Adminsidebar from "./Adminsidebar";
+import Adminheader from "./Adminheader";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Select,
+  MenuItem,
+  TextField,
+} from '@mui/material';
 
 const Addmessage = () => {
   const [editorData, setEditorData] = useState('');
@@ -14,10 +30,12 @@ const Addmessage = () => {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [selectedSubject, setselectedSubject] = useState('');
+  const apiUrl = config.backendUrl;
+
 
   useEffect(() => {
     const getdata = async () => {
-      const response = await fetch("http://127.0.0.1:8000/api/getsubscriberdetails");
+      const response = await fetch(`${apiUrl}/getsubscriberdetails`);
       const data = await response.json();
       setSubscriber(data);
     };
@@ -35,77 +53,99 @@ const Addmessage = () => {
   };
 
   const closeModal = () => {
-    setEditorData("");
+    setEditorData('');
     setModalIsOpen(false);
   };
+
+  const [openSidebar, setOpenSidebar] = useState(true);
+
+  const sidebarToggler = () => {
+    setOpenSidebar(!openSidebar);
+  };
+
+  useEffect(() => {
+    const resizeSidebar = () => {
+      if (window.innerWidth <= 1200 && openSidebar) {
+        setOpenSidebar(false);
+      }
+    };
+    window.addEventListener("resize", resizeSidebar);
+    return () => {
+      window.removeEventListener("resize", resizeSidebar);
+    };
+  }, [openSidebar]);
+
 
   const handleSubjectChange = (event) => {
     const selectedValue = event.target.value;
     setselectedSubject(selectedValue);
 
-    if (selectedValue === "1") {
+    if (selectedValue === '1') {
       const dynamicContent = `<h2>Greetings from Quiz App</h2><br/>Dear <b>${to}</b>,<br/>We are glad to inform you that a new subject has been added for you to explore yourself further.Click on the link below to view <br/><a href="http://localhost:3000/">Click here to explore</a><br/><br/>Thanks & Regards,<br/><b>Coding Brains IT Solutions,Lucknow</b>`;
       setEditorData(dynamicContent);
     }
-    if (selectedValue === "2") {
-      const dynamicContent = `<h2>Greetings from Quiz App</h2><br/>Dear <b>${to}</b>,<br/>We are glad to inform you that few new questions has been added for you to explore yourself further.Click on the link below to view <br/><a href="http://localhost:3000/">Click here to explore</a><br/><br/>Thanks & Regards,<br/><b>Coding Brains IT Solutions,Lucknow</b>`;
+    if (selectedValue === '2') {
+      const dynamicContent = `<h2>Greetings from Quiz App</h2><br/>Dear <b>${to}</b>,<br/>We are glad to inform you that few new questions have been added for you to explore yourself further.Click on the link below to view <br/><a href="http://localhost:3000/">Click here to explore</a><br/><br/>Thanks & Regards,<br/><b>Coding Brains IT Solutions,Lucknow</b>`;
       setEditorData(dynamicContent);
     }
   };
 
-  const sendEmail = async() => {
-
-
-    const response = await fetch("http://127.0.0.1:8000/api/sendmail", {
-      method: "POST",
+  const sendEmail = async () => {
+    const response = await fetch(`${apiUrl}/sendmail`, {
+      method: 'POST',
       headers: {
-        "Content-type": "application/json",
+        'Content-type': 'application/json',
       },
       body: JSON.stringify({
-          // subject_id: subject1_id,
-       
         content: editorData,
-        to:to,
-       subject: subject,
+        to: to,
+        subject: subject,
       }),
     });
-    const result = await response.json();
-    if(response.status==200){
-      toastr.success("Email sent successfully")
+
+    if (response.status === 200) {
+      toastr.success('Email sent successfully');
     }
-
-// console.log(result)
-
-   
-    // Close the modal after sending the email
-    setEditorData("");
 
     closeModal();
   };
 
   return (
-    <div>
+    <div className={`mainLayout ${openSidebar ? "openSidebar" : ""}`}>
+      <aside className={`leftSidebar ${openSidebar ? "" : "close"}`}>
+              <Adminsidebar />
+
+      </aside>
+      <div className="mainContent">
+          <nav>
+            <Adminheader />
+          </nav>
+          <main className="cst-main">
       <h1>Subscriber List</h1>
-      <table style={{border:"1px solid",fontSize:'30px'}}>
-        <thead>
-          <tr>
-            <th>Email Address</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {subscriber.map((subs) => (
-            <tr key={subs.email_address}>
-              <td>{subs.email_address}</td>
-              <td>
-                <Link to="#" onClick={() => openModal(subs.email_address)}>
-                  Email
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell style={{color:"red", fontSize:"30px"}}>Email Address</TableCell>
+              <TableCell style={{color:"green", fontSize:"30px"}}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {subscriber.map((subs) => (
+              <TableRow key={subs.email_address}>
+                <TableCell>{subs.email_address}</TableCell>
+                <TableCell>
+                  <Link to="#" onClick={() => openModal(subs.email_address)}>
+                    Email
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      </main>
+      </div>
 
       {/* Modal for CKEditor */}
       <Modal isOpen={modalIsOpen} onRequestClose={closeModal} style={modalStyles}>
@@ -113,35 +153,52 @@ const Addmessage = () => {
           <h2>EMAIL SUBSCRIBER</h2>
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label>
-            From:
-            <input type="text" style={{ width: '510px' }} value="codingbrains8@gmail.com" onChange={(e) => setFrom(e.target.value)} disabled/>
-          </label>
+          <TextField
+            label="From"
+            variant="outlined"
+            fullWidth
+            value="codingbrains8@gmail.com"
+            onChange={(e) => setFrom(e.target.value)}
+            disabled
+          />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label>
-            To:
-            <input type="text" style={{ width: '531px' }} value={to} onChange={(e) => setTo(e.target.value)} disabled />
-          </label>
+          <TextField
+            label="To"
+            variant="outlined"
+            fullWidth
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            disabled
+          />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label>
-            Subject:
-            <select style={{ width: "500px" }} value={selectedSubject} onChange={handleSubjectChange}>
-              <option value="" selected disabled>Select</option>
-              <option value="1">New Subjects Added</option>
-              <option value="2">New Questions Added</option>
-            </select>
-          </label>
+          <TextField
+            label="Subject"
+            variant="outlined"
+            fullWidth
+            select
+            value={selectedSubject}
+            onChange={handleSubjectChange}
+          >
+            <MenuItem value="" disabled>
+              Select
+            </MenuItem>
+            <MenuItem value="1">New Subjects Added</MenuItem>
+            <MenuItem value="2">New Questions Added</MenuItem>
+          </TextField>
         </div>
         <RichTextEditor data={editorData} onDataChange={handleEditorChange} editorConfig={{ height: '500px' }} />
         <div style={{ marginTop: '10px', textAlign: 'center' }}>
-          <button onClick={sendEmail}>Send Email</button>
-          <button onClick={closeModal} style={{ marginLeft: '10px' }}>
+          <Button variant="contained" color="primary" onClick={sendEmail}>
+            Send Email
+          </Button>
+          <Button onClick={closeModal} style={{ marginLeft: '10px' }}>
             Close
-          </button>
+          </Button>
         </div>
       </Modal>
+
     </div>
   );
 };

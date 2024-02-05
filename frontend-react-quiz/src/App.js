@@ -9,7 +9,7 @@ import Userlist from "./components/Userlist";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
-import Userdashboard from "./components/Userdashboard";
+import UserDashboard from "./components/UserDashboard";
 import Attemptquiz from "./components/Attemptquiz";
 import Displayquestion from "./components/Displayquestion";
 import Myrecords from "./components/Myrecords";
@@ -24,8 +24,21 @@ import Entryheader from "./components/Entryheader";
 import Addsubject from "./components/Addsubject";
 import Editsubject from "./components/Editsubject";
 import Addmessage from "./components/Addmessage";
+import Userprofile from "./components/Userprofile";
+import Adminprofile from "./components/Adminprofile";
+
+import LayoutMain from "./components/LayoutMain";
+import Chart from "./components/Chart";
+import Adminchart from "./components/Adminchart";
+
+
+
+
+
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+// import { Route } from 'react-router-dom';
+
 
 
 
@@ -61,13 +74,25 @@ function App() {
           <Route path="register" element={<Register />} />
           <Route path="addquestion" element={<Addquestion />} />
           <Route path="showrecords" element={<Showrecords />} />
+          <Route path="userprofile" element={<Userprofile />} />
+          <Route path="layoutmain" element={<LayoutMain />} />
+          <Route path="dashboard" element={<Dashboard/>} />
+          <Route path="chart" element={<Chart/>} />
+          <Route path="adminchart" element={<Adminchart/>} />
+
+          
+          <Route path="adminprofile" element={<Adminprofile/>} />
+
+
+
+
 
           <Route path="login" element={<Login />} />
           <Route path="attemptquiz" element={<Attemptquiz />} />
           <Route path="addsubject" element={<Addsubject />} />
 
           <Route path="myrecords" element={<Myrecords />} />
-          <Route path="userdashboard" element={<Userdashboard />} />
+          <Route path="userdashboard" element={<UserDashboard />} />
 
           <Route path="chatbox" element={<ChatBox />} />
           <Route path="admindashboard" element={<Admindashboard />} />
@@ -77,7 +102,7 @@ function App() {
           {/* <Route path="logout" element={<Logout />} /> */}
 
 
-          <Route path="/addquestion/:subject_id" element={<Userdashboard />} />
+          <Route path="/addquestion/:subject_id" element={<UserDashboard />} />
           <Route
             path="/addquestiontosubject/:subject1_id"
             element={<Addquestiontosubject />}
@@ -87,7 +112,7 @@ function App() {
             element={<Editsubject />}
           />
 
-          <Route path="/userdashboard/" element={<Userdashboard />} />
+          <Route path="/userdashboard/" element={<UserDashboard />} />
           <Route
             path="/quiz/:selectedSubject/"
             element={<Displayquestion />}

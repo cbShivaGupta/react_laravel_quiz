@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate  } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 import EntryHeader from "./Entryheader";
 // import Footer from "./Footer";
@@ -20,75 +20,63 @@ import { MenuItem } from "@mui/material/MenuItem";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 
-
 const Home = () => {
-  const [searchsubject, setSearchsubject] = useState('');
-  const [totalusers, setTotalUsers] = useState('');
-  const [totalsubjects, setTotalSubjects] = useState('');
-  const [totalquestions, setTotalQuestions] = useState('');
-  const[usermail,setUsermail]=useState('');
+  const [searchsubject, setSearchsubject] = useState("");
+  const [totalusers, setTotalUsers] = useState("");
+  const [totalsubjects, setTotalSubjects] = useState("");
+  const [totalquestions, setTotalQuestions] = useState("");
+  const [usermail, setUsermail] = useState("");
 
-
-
-  const[receivedsubject,setReceivedSubject]=useState([]);
+  const [receivedsubject, setReceivedSubject] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const[trendingsubjects,setTrendingSubjects]=useState([]);
+  const [trendingsubjects, setTrendingSubjects] = useState([]);
 
   const navigate = useNavigate();
 
+  const baseUrl = window.location.origin;
+  // alert(baseUrl);
   const fetchSubjects = async () => {
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/subjectforquiz"
-      );
+      const response = await fetch("http://127.0.0.1:8000/api/subjectforquiz");
       const data = await response.json();
       setSubjects(data);
     } catch (error) {
       console.error("Error fetching subjects:", error);
     }
   };
-  const subscribe=async(event)=>{
+  const subscribe = async (event) => {
     event.preventDefault();
-    if(usermail=="")
-    {
-      toastr.error("Kindly enter email address")
+    if (usermail == "") {
+      toastr.error("Kindly enter email address");
     }
     // alert(usermail)
-  
-      const response=await fetch(
-        "http://127.0.0.1:8000/api/subscribe",{
-          method:"POST",
-          headers:{
-            "Content-type":"application/json"
-          },
-          body:JSON.stringify({
-           email_address:usermail
-          })
-        }
-      );
-      const result= await response.json();
-      if(response.status==200){
-        toastr.success(result.msg)
-      }
-      if(response.status==202){
-  toastr.error(result.msg)
-}
-      
 
-   
-  }
-
+    const response = await fetch("http://127.0.0.1:8000/api/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        email_address: usermail,
+      }),
+    });
+    const result = await response.json();
+    if (response.status == 200) {
+      toastr.success(result.msg);
+    }
+    if (response.status == 202) {
+      toastr.error(result.msg);
+    }
+  };
 
   const fetchalldata = async () => {
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/fetchalldata"
-      );
+      const response = await fetch("http://127.0.0.1:8000/api/fetchalldata");
       const data = await response.json();
       // setSubjects(data);
-      setTotalUsers(data.totalusers)
-      setTotalSubjects(data.totalsubjects)
-      setTotalQuestions(data.totalquestions)
+      setTotalUsers(data.totalusers);
+      setTotalSubjects(data.totalsubjects);
+      setTotalQuestions(data.totalquestions);
     } catch (error) {
       console.error("Error fetching subjects:", error);
     }
@@ -101,116 +89,70 @@ const Home = () => {
       );
       const data = await response.json();
       // setSubjects(data);
-      setTrendingSubjects(data)
+      setTrendingSubjects(data);
       // alert(trendingsubjects)
     } catch (error) {
       console.error("Error fetching subjects:", error);
     }
   };
 
-
-  
-
-
-
-
   useEffect(() => {
-   
-
     fetchSubjects();
-  }, []); 
+  }, []);
   useEffect(() => {
-   
-
     fetchalldata();
-  }, []); 
+  }, []);
   useEffect(() => {
-   
-
     fetchtrendingquiz();
-  }, []); 
-
-
- 
+  }, []);
 
   const subjectnameforsearch = (event) => {
     setSearchsubject(event.target.value);
   };
   const getsubject = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
     const uid = localStorage.getItem("user_token");
-  const role = localStorage.getItem("role");
+    const role = localStorage.getItem("role");
 
-  if (uid && role == 2) {
-    
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/getsearchedsubject",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          searchsubject: searchsubject,
-          // record_date: recordDate,
-          // selected_subject: selectedSubject,
-        }),
+    if (uid && role == 2) {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/getsearchedsubject",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            searchsubject: searchsubject,
+          
+          }),
+        }
+      );
+
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        const data = await response.json();
+        if (response.status == 202) {
+          const subject_id = data.subject_id;
+          const route = `/quiz/${subject_id}`;
+          navigate(route);
+
+          // alert(data.subject_id+'----'+data.subject_name)
+        } else {
+          // alert()
+          toastr.error(data.msg);
+        }
       }
-    );
-
-
-    const contentType = response.headers.get("content-type");
-
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-     if(response.status==202){
-      const subject_id=data.subject_id;
-      const route = `/quiz/${subject_id}`;
-      navigate(route);
-
-
-        // alert(data.subject_id+'----'+data.subject_name)
-
-     }
-     
-else{
-  // alert()
-    toastr.error(data.msg)
-}    }
-    }  
-  else{
-    window.location.href = "/login";
-
-  }
-  
+    } else {
+      window.location.href = "/login";
+    }
   };
 
   return (
     <>
       <EntryHeader />
-      {/* <div className="banner-cover bg-fixed">
-        <Container maxWidth="xl" style={{ height: "auto" }}>
-          <Grid container spacing={2}>
-            <div className="col-lg-12 banner-content">
-              <h4 className="banner-text text-center">
-                Growth Your Career With Complate Courses
-              </h4>
-              <div className="bannersrch d-flex justify-content-center">
-                <form className="bannerForm">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id=""
-                    placeholder="Enter Quiz Name"
-                  />
-                  <button type="submit">Search</button>
-                </form>
-              </div>
-            </div>
-          </Grid>
-        </Container>
-      </div> */}
-
+    
       <div className="home-banner bg-fixed">
         <div className="overlay">
           <Container maxWidth="xl">
@@ -235,12 +177,13 @@ else{
                         class="form-control"
                         id="searchquiz"
                         name="subjectnameforsearch"
-                      
                         value={searchsubject}
                         onChange={subjectnameforsearch}
                         placeholder="Enter Quiz Name"
                       />
-                      <button type="submit" onClick={getsubject}>Search</button>
+                      <button type="submit" onClick={getsubject}>
+                        Search
+                      </button>
                     </form>
                   </div>
                 </div>
@@ -256,98 +199,107 @@ else{
           <Box sx={{ height: "100vh" }}>
             <Grid container spacing={2}>
               <Grid item xs={8}>
-              <div className="row mx-0">
-  {subjects
-    .filter((subject) => [5, 4, 6, 8,15,16].includes(subject.id))
-    .map((subject) => (
-   
-      <div className="col-lg-6 mt-5" key={subject.id}>
-        <div className="category-card box-blue">
-          {subject.id === 5 ? (
-          <Link
-          to={`/quiz/${subject.id}`} className="content">
-              <i className="fa-solid fa-list-check"></i>
-              <span> {subject.subject_name}</span>
-              </Link>
-          ) : subject.id === 4 ? (
-            <Link
-            to={`/quiz/${subject.id}`} className="content">
-              <i className="fa-solid fa-square-root-variable"></i>
-              <span> {subject.subject_name}</span>
-            </Link>
-          ) : subject.id === 6 ? (
-            <Link
-            to={`/quiz/${subject.id}`} className="content">
-              <i className="fa-solid fa-traffic-light"></i>
-              <span> {subject.subject_name}</span>
-              </Link>
-          ) : subject.id === 8 ? (
-            <Link
-            to={`/quiz/${subject.id}`} className="content">
-              <i className="fa-solid fa-brain"></i>
-              <span> {subject.subject_name}</span>
-              </Link>
-          ) : subject.id === 15 ? (
-            <Link
-            to={`/quiz/${subject.id}`} className="content">
-              <i className="fa-solid fa-brain"></i>
-              <span> {subject.subject_name}</span>
-              </Link>
-          ) : subject.id === 16 ? (
-            <Link
-            to={`/quiz/${subject.id}`} className="content">
-              <i className="fa-solid fa-brain"></i>
-              <span> {subject.subject_name}</span>
-              </Link>
-          ) : null}
-        </div>
-      </div>
-    ))}
-</div>
+                <div className="row mx-0">
+                  {subjects
+                    .filter((subject) =>
+                      [11, 19, 1, 5, 6, 18].includes(subject.id)
+                    )
+                    .map((subject) => (
+                      <div className="col-lg-6 mt-5" key={subject.id}>
+                        <div className="category-card box-blue">
+                          {subject.id === 11 ? (
+                            <Link
+                              to={`/quiz/${subject.id}`}
+                              className="content"
+                            >
+                              <i className="fa-solid fa-list-check"></i>
+                              <span> {subject.subject_name}</span>
+                            </Link>
+                          ) : subject.id === 19 ? (
+                            <Link
+                              to={`/quiz/${subject.id}`}
+                              className="content"
+                            >
+                              <i className="fa-solid fa-square-root-variable"></i>
+                              <span> {subject.subject_name}</span>
+                            </Link>
+                          ) : subject.id === 1 ? (
+                            <Link
+                              to={`/quiz/${subject.id}`}
+                              className="content"
+                            >
+                              <i className="fa-solid fa-traffic-light"></i>
+                              <span> {subject.subject_name}</span>
+                            </Link>
+                          ) : subject.id === 5 ? (
+                            <Link
+                              to={`/quiz/${subject.id}`}
+                              className="content"
+                            >
+                              <i className="fa-solid fa-brain"></i>
+                              <span> {subject.subject_name}</span>
+                            </Link>
+                          ) : subject.id === 6 ? (
+                            <Link
+                              to={`/quiz/${subject.id}`}
+                              className="content"
+                            >
+                              <i className="fa-solid fa-brain"></i>
+                              <span> {subject.subject_name}</span>
+                            </Link>
+                          ) : subject.id === 18 ? (
+                            <Link
+                              to={`/quiz/${subject.id}`}
+                              className="content"
+                            >
+                              <i className="fa-solid fa-brain"></i>
+                              <span> {subject.subject_name}</span>
+                            </Link>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                </div>
               </Grid>
               <Grid item xs={4}>
                 <div className="trend-sidebar mt-5">
                   <h4 className="h4">Trending Quiz</h4>
                   <div className="trending-quiz-items">
-                   
+                    {trendingsubjects.map((sub) => (
+                      <div className="trend-item">
+                        <div className="content d-flex">
+                          <div className="thumb">
+                            <Link>
+                              <img
+                                className="img-fluid"
+                                src="https://validthemes.net/site-template/examin/assets/img/courses/g2.jpg"
+                                alt="course-tumb"
+                              />
+                            </Link>
+                          </div>
+                          <div className="info">
+                            <h4>
+                              <Link to={`/quiz/${sub.subject_id}`}>
+                                {" "}
+                                {sub.subject_name}
+                              </Link>
+                            </h4>
+                            <div className="rating mb-3">
+                              <span>
+                                {sub.B_count} <small>attempts</small>
+                              </span>
+                            </div>
+                            <div className="owner">
+                              <i class="fa-regular fa-user me-2"></i>
+                              By <Link>Coding Brains</Link>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
 
-
-           {trendingsubjects.map((sub)=>(
-              <div className="trend-item">
-              <div className="content d-flex">
-                <div className="thumb">
-                  <Link>
-                    <img
-                      className="img-fluid"
-                      src="https://validthemes.net/site-template/examin/assets/img/courses/g2.jpg"
-                      alt="course-tumb"
-                    />
-                  </Link>
-                </div>
-                <div className="info">
-                  <h4>
-                  <Link
-            to={`/quiz/${sub.subject_id}`}> {sub.subject_name}</Link>
-                  </h4>
-                  <div className="rating mb-3">
-                    
-                    <span>
-                    {sub.B_count} <small>attempts</small>
-                    </span>
-                  </div>
-                  <div className="owner">
-                    <i class="fa-regular fa-user me-2"></i>
-                    By <Link>Coding Brains</Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-           ))}
-                  
-             
                     <div className="all-quiz py-3 my-2">
-                      <Link to='/attemptquiz' >
+                      <Link to="/attemptquiz">
                         BROWSE ALL COURSES{" "}
                         <i class="fa-solid fa-right-long me-2"></i>
                       </Link>
@@ -651,7 +603,7 @@ else{
                       <tbody>
                         <tr>
                           <td id="closing-fee-buyer" class="subtotal1">
-                            $ 175.00
+                            Gomti Nagar,Lucknow
                           </td>
                         </tr>
                       </tbody>
@@ -811,7 +763,7 @@ else{
                         type="text"
                         placeholder="Enter Email"
                         value={usermail}
-                        onChange={(e)=>setUsermail(e.target.value)}
+                        onChange={(e) => setUsermail(e.target.value)}
                         class="form-control"
                       ></input>
                       <button onClick={subscribe}>

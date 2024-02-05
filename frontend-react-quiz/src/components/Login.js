@@ -15,6 +15,8 @@ import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { CircularProgress, Paper, Snackbar } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
+import config from '../config';
+
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -23,6 +25,8 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 const Login = () => {
   const uid = localStorage.getItem("user_token");
   const role = localStorage.getItem("role");
+  const apiUrl = config.backendUrl;
+
 
   if (uid) {
     if (role == 1) {
@@ -67,7 +71,7 @@ const Login = () => {
 
     try {
       setLoading(true);
-      const response = await fetch("http://127.0.0.1:8000/api/login", {
+      const response = await fetch(`${apiUrl}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,8 +83,12 @@ const Login = () => {
         const res = await response.json();
         const user_token = res.user_token;
         const uid = res.user_id;
+        const username=res.uname;
+        // alert(username)
         localStorage.setItem("user_token", user_token);
         localStorage.setItem("userid", uid);
+        localStorage.setItem("username", username);
+
         localStorage.setItem("role", res.role);
 
         if (res.role === 2) {
@@ -188,7 +196,7 @@ const Login = () => {
                   const userEmail = credentialDecoded.email;
                   const userSecret = credentialDecoded.sub;
                   // alert(userSecret)
-                  const apiUrl = "http://127.0.0.1:8000/api/googlelogin";
+                  const apiUrl = `${apiUrl}/googlelogin`;
 
                   const response = await fetch(apiUrl, {
                     method: "POST",
@@ -206,11 +214,15 @@ const Login = () => {
 
                   // const res = await response.json();
                   const user_token = data2.user_token;
+                  const username = data2.username;
+
                   localStorage.setItem("user_token", user_token);
                   localStorage.setItem("role", 2);
+                  localStorage.setItem("username", username);
+
 
                   // console.log(data2);
-                  navigate("/userdashboard");
+                  navigate("/");
                 } catch (error) {
                   console.error("Error during Google login:", error);
                   toastr.error("Google login failed");

@@ -3,6 +3,11 @@ import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 import TimePicker from "react-time-picker";
 import "react-time-picker/dist/TimePicker.css";
+import config from '../config';
+import Dropdown from "react-bootstrap/Dropdown";
+import "../App.css";
+import Adminheader from "./Adminheader";
+
 // import NumberInput from './NumberInput';
 
 import {
@@ -40,10 +45,30 @@ const AddQuestion = () => {
   const [quizsec, setQuizSec] = useState("");
 
   const [time, setTime] = useState("12:00"); // Set your initial time
+  const [openSidebar, setOpenSidebar] = useState(true);
+
+  const sidebarToggler = () => {
+    setOpenSidebar(!openSidebar);
+  };
+
+  useEffect(() => {
+    const resizeSidebar = () => {
+      if (window.innerWidth <= 1200 && openSidebar) {
+        setOpenSidebar(false);
+      }
+    };
+    window.addEventListener("resize", resizeSidebar);
+    return () => {
+      window.removeEventListener("resize", resizeSidebar);
+    };
+  }, [openSidebar]);
+
+  const apiUrl = config.backendUrl;
+
 
   const fetchSubjects = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/subjectforquiz");
+      const response = await fetch(`${apiUrl}/subjectforquiz`);
       const data = await response.json();
       setSubjects(data);
     } catch (error) {
@@ -93,7 +118,7 @@ const AddQuestion = () => {
 
     if (newSubject.trim() !== "") {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/addsubject", {
+        const response = await fetch(`${apiUrl}/addsubject`, {
           method: "POST",
           headers: {
             "Content-type": "application/json",
@@ -128,7 +153,7 @@ const AddQuestion = () => {
     }
   if(window.confirm("Are you sure you want to delete this subject?")){
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/deletesubject", {
+      const response = await fetch(`${apiUrl}/deletesubject`, {
         method: "POST",
         headers: {
           "Content-type": "application/json",
@@ -158,13 +183,28 @@ const AddQuestion = () => {
   }}
   
   return (
-    <Container>
+
+
+
+
+    <>
+    <div className={`mainLayout ${openSidebar ? "openSidebar" : ""}`}>
+      <aside className={`leftSidebar ${openSidebar ? "" : "close"}`}>
+              <Adminsidebar />
+
+      </aside>
+      <div className="mainContent">
+          <nav>
+            <Adminheader />
+          </nav>
+          <main className="cst-main">
+
+        <Container>
       <Grid container>
-        <Grid item xs={3}>
-          <Adminsidebar />
-        </Grid>
+        
         <Grid item xs={9}>
           <div style={{ padding: "20px" }}>
+            <h2>SUBJECT MANAGEMENT</h2>
           
            
             <FormControl fullWidth variant="outlined" margin="normal">
@@ -238,7 +278,51 @@ const AddQuestion = () => {
         </Grid>
       </Grid>
     </Container>
+    </main>
+      </div>
+    </div>
+  </>
+
+    
   );
 };
 
 export default AddQuestion;
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   

@@ -4,6 +4,21 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
+import config from "../config";
+import Dropdown from "react-bootstrap/Dropdown";
+import "../App.css";
+import Usersidebar from "./Usersidebar";
+import Userheader from "./Userheader";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  Form,
+  Badge,
+} from "react-bootstrap";
+
 import {
   Table,
   TableBody,
@@ -13,7 +28,7 @@ import {
   TableRow,
   Paper,
   CircularProgress,
-  Container,
+  // Container,
   Grid,
   Typography,
   Button,
@@ -32,6 +47,24 @@ const MyRecords = () => {
     window.location.href = "/login";
   }
 
+  const [openSidebar, setOpenSidebar] = useState(true);
+
+  const sidebarToggler = () => {
+    setOpenSidebar(!openSidebar);
+  };
+
+  useEffect(() => {
+    const resizeSidebar = () => {
+      if (window.innerWidth <= 1200 && openSidebar) {
+        setOpenSidebar(false);
+      }
+    };
+    window.addEventListener("resize", resizeSidebar);
+    return () => {
+      window.removeEventListener("resize", resizeSidebar);
+    };
+  }, [openSidebar]);
+
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const user_id = localStorage.getItem("userid");
@@ -43,13 +76,12 @@ const MyRecords = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [subjects, setSubjects] = useState([]);
+  const apiUrl = config.backendUrl;
 
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/subjectforquiz"
-        );
+        const response = await fetch(`${apiUrl}/subjectforquiz`);
         const data = await response.json();
         setSubjects(data);
       } catch (error) {
@@ -60,13 +92,16 @@ const MyRecords = () => {
     fetchSubjects();
   }, []); // Empty dependency array ensures that this effect runs once on mount
 
-  const fetchRecords = async () => {
+  const fetchRecords = async (event) => {
+    event.preventDefault();
+    // alert(selectedSubject)
     if (recordDate == null) {
       if (selectedSubject == null) {
         toastr.error("Select date or subject");
       } else {
+        // alert();
         // alert("userid="+user_id+" "+"subject_id="+selectedSubject)
-        const response = await fetch("http://127.0.0.1:8000/api/fetchrecords", {
+        const response = await fetch(`${apiUrl}/fetchrecords`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -79,10 +114,11 @@ const MyRecords = () => {
         });
 
         const contentType = response.headers.get("content-type");
+        
 
         if (contentType && contentType.includes("application/json")) {
           const data = await response.json();
-          // console.log("DATA="+data);
+          console.log("DATA="+data);
           setIsVisible(true);
           setRecords(data);
         } else {
@@ -94,7 +130,7 @@ const MyRecords = () => {
       }
     } else {
       if (selectedSubject == null) {
-        const response = await fetch("http://127.0.0.1:8000/api/fetchrecords", {
+        const response = await fetch(`${apiUrl}/fetchrecords`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +155,7 @@ const MyRecords = () => {
 
         setLoading(false);
       } else {
-        const response = await fetch("http://127.0.0.1:8000/api/fetchrecords", {
+        const response = await fetch(`${apiUrl}/fetchrecords`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -148,9 +184,11 @@ const MyRecords = () => {
     }
   };
 
-  const handleDateChange = (date) => {
-    const formattedDate = new Date(date.toISOString().slice(0, 10));
-    // alert(correct_date); return;
+  const handleDateChange = (event) => {
+    const selectedDate = event.target.value;
+
+    const formattedDate = new Date(selectedDate).toISOString().split('T')[0];
+
     setRecordDate(formattedDate);
   };
   const handleSubjectChange = (event) => {
@@ -158,129 +196,151 @@ const MyRecords = () => {
   };
 
   return (
-    <Grid container>
-      <Grid item md={2}>
-        <Sidebar user_id={user_id} />
-      </Grid>
-      <Grid item md={10}>
-        <Container maxWidth="lg">
-          <Typography variant="h5">Select Date</Typography>
-          <DatePicker
-            selected={recordDate}
-            onChange={handleDateChange}
-            dateFormat="yyyy-MM-dd"
-          />
+    <>
+      <div className={`mainLayout ${openSidebar ? "openSidebar" : ""}`}>
+        <aside className={`leftSidebar ${openSidebar ? "" : "close"}`}>
+          <Usersidebar />
+        </aside>
+        <div className="mainContent">
+          <nav>
+            <Userheader />
+          </nav>
+          <main className="cst-main">
+            <Container fluid>
+              <Row>
+                <Col lg="12">
+                  <div className="quizFilter">
+                    <Card>
+                      <CardBody>
+                        <div className="card-head">Filter Quiz</div>
+                        <Form>
+                          <Row className="mb-3">
+                            <Form.Group as={Col} lg="5" controlId="enterDate">
+                              <Form.Label>Select Date</Form.Label>
+                              <Form.Control
+                                // required
+                                type="date"
+                                selected={recordDate}
+                                onChange={(event) => handleDateChange(event)}
+                                // {handleDateChange}
+                                // dateFormat="yyyy-MM-dd"
+                              />
+                              <Form.Control.Feedback>
+                                Looks good!
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                            <Form.Group
+                              as={Col}
+                              lg="5"
+                              controlId="selectCourse"
+                            >
+                              <Form.Label>Select Subject</Form.Label>
+                              <Form.Select id="subject-select"
+                      // value={selectedSubject}
+                      onChange={handleSubjectChange}>
+                                {/* <option disabled>select subject</option> */}
 
-          <Typography variant="h5">Select Subject</Typography>
-
-          <FormControl fullWidth style={{ maxWidth: "300px" }}>
-            <InputLabel htmlFor="subject-select">Select Subject</InputLabel>
-            <Select
-              label="Select Subject"
-              id="subject-select"
-              value={selectedSubject}
-              onChange={handleSubjectChange}
-            >
-              {subjects.map((subject) => (
-                <MenuItem key={subject.id} value={subject.id}>
-                  {subject.subject_name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button variant="contained" color="primary" onClick={fetchRecords}>
-            Search
-          </Button>
-
-          {isVisible && (
-            <>
-              <Typography
-                variant="h4"
-                style={{ marginTop: "20px", marginBottom: "20px" }}
-              >
-                My Records
-              </Typography>
-
-              {loading && <CircularProgress style={{ margin: "20px" }} />}
-              {error && (
-                <Typography variant="body1" color="error">
-                  Error: {error.message}
-                </Typography>
-              )}
-
-              {records.length === 0 && !loading && (
-                <Typography variant="body1">No records found.</Typography>
-              )}
-
-              {records.length > 0 && (
-                <TableContainer component={Paper} style={{ marginTop: "20px" }}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>
-                          <b>Response ID</b>
-                        </TableCell>
-                        <TableCell>
-                          <b>Subject Name</b>
-                        </TableCell>
-                        <TableCell>
-                          <b>Question</b>
-                        </TableCell>
-                        <TableCell>
-                          <b>Options</b>
-                        </TableCell>
-                        <TableCell>
-                          <b>Selected Response</b>
-                        </TableCell>
-                        <TableCell>
-                          <b>Correct Response</b>
-                        </TableCell>
-                        <TableCell>
-                          <b>Answer Status</b>
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {records.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{item.response_id}</TableCell>
-                          <TableCell>{item.subject_name}</TableCell>
-                          <TableCell>{item.question}</TableCell>
-                          <TableCell>
-                            1.{item.option1}
-                            <br />
-                            2.{item.option2}
-                            <br />
-                            3.{item.option3}
-                            <br />
-                            4.{item.option4}
-                            <br />
-                          </TableCell>
-                          <TableCell>{item.response}</TableCell>
-                          <TableCell>{item.correct_option}</TableCell>
-                          <TableCell>
-                            {item.correct_option === item.response ? (
-                              <span style={{ color: "green" }}>
-                                <b>Correct</b>
-                              </span>
-                            ) : (
-                              <span style={{ color: "red" }}>
-                                <b>Incorrect</b>
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </>
-          )}
-        </Container>
-      </Grid>
-    </Grid>
+                           
+                        {subjects.map((subject) => (
+                                <option key={subject.id} value={subject.id}>{subject.subject_name}</option>
+                                ))}
+                                {/* <option value="math">Maths</option> */}
+                              </Form.Select>
+                              <Form.Control.Feedback>
+                                Looks good!
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                            <Col lg={2} className="mt-auto">
+                              <button onClick={(event) => fetchRecords(event)} className="myBtn cardBtn w-100">
+                                <i class="font-12 fa-solid fa-magnifying-glass me-1"></i>
+                                Search
+                              </button>
+                            </Col>
+                          </Row>
+                        </Form>
+                        <Row>
+                          {isVisible  && (
+                            <TableContainer>
+                              <Table className="cstTable">
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell>
+                                      <b>Attempt date</b>
+                                    </TableCell>
+                                    <TableCell>
+                                      <b>Subject Name</b>
+                                    </TableCell>
+                                    <TableCell>
+                                      <b>Question</b>
+                                    </TableCell>
+                                    <TableCell>
+                                      <b>Options</b>
+                                    </TableCell>
+                                    <TableCell>
+                                      <b>Selected Response</b>
+                                    </TableCell>
+                                    <TableCell>
+                                      <b>Correct Response</b>
+                                    </TableCell>
+                                    <TableCell>
+                                      <b>Answer Status</b>
+                                    </TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {records.map((item, index) => (
+                                    <TableRow key={index}>
+                                      <TableCell>{item.date}</TableCell>
+                                      <TableCell>{item.subject_name}</TableCell>
+                                      <TableCell>{item.question}</TableCell>
+                                      <TableCell>
+                                        1.{item.option1}
+                                        <br />
+                                        2.{item.option2}
+                                        <br />
+                                        3.{item.option3}
+                                        <br />
+                                        4.{item.option4}
+                                        <br />
+                                      </TableCell>
+                                      <TableCell>{item.response}</TableCell>
+                                      <TableCell>
+                                        {item.correct_option}
+                                      </TableCell>
+                                      <TableCell>
+                                        {item.correct_option ===
+                                        item.response ? (
+                                          <span style={{ color: "green" }}>
+                                            <Badge  bg="success">
+                                              correct
+                                            </Badge>
+                                          </span>
+                                        ) : (
+                                          <span style={{ color: "red" }}>
+                                            <Badge  bg="danger">
+                                              Incorrect
+                                            </Badge>
+                                          </span>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          )}
+                        </Row>
+                      </CardBody>
+                    </Card>
+                  </div>
+                </Col>
+              </Row>
+            </Container>
+           
+          </main>
+        </div>
+      </div>
+    </>
   );
 };
-
 export default MyRecords;

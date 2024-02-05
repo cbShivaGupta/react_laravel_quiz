@@ -56,7 +56,7 @@ class Bookcontroller extends Controller
     $result = DB::table('users')->insert([
       'name' => $user_name,
       'email' => $user_email,
-      'password' => $user_password,
+      'password' => md5($user_password),
       'role' => 2
     ]);
     if ($result) {
@@ -76,13 +76,14 @@ class Bookcontroller extends Controller
       $user_email
     )->where(
       'password',
-      $user_password
+      md5($user_password)
     )->get();
     $role = $result[0]->role;
     $user_id = $result[0]->id;
+    $user_name=$result[0]->name;
     if (count($result) > 0) {
       session()->put('userid', $result[0]->id);
-      return response()->json(['role' => $role, 'user_id' => $user_id, 'user_token' => $user_token], 203);
+      return response()->json(['role' => $role, 'user_id' => $user_id, 'user_token' => $user_token,'uname'=>$user_name], 203);
     } else {
       return response()->json(['message' => 'error'], 400);
     }
@@ -356,7 +357,7 @@ class Bookcontroller extends Controller
       return response()->json(['msg' => 'There is no user associated with the given email adddress'], 400);
     } else {
       $update_password = DB::table('users')->where('email', $user_mail)->update([
-        'password' => $user_pass
+        'password' => md5($user_pass)
       ]);
       if ($update_password) {
         return response()->json(['msg' => 'Password Updated Successfully'], 202);
@@ -381,7 +382,7 @@ class Bookcontroller extends Controller
         'google_user' => 1
       ]);
     }
-    return response()->json(['msg' => 'User registered successfully', 'user_token' => $user_token], 202);
+    return response()->json(['msg' => 'User registered successfully', 'user_token' => $user_token,'username'=>$user_name], 202);
   }
   public function checkpreviousattempstatus(Request $req)
   {
@@ -513,6 +514,115 @@ class Bookcontroller extends Controller
       } catch (\Exception $e) {
           return response()->json(['msg' => 'Error sending email', 'error' => $e->getMessage()], 500);
       }
+  }
+  public function fetchprofile(Request $req)
+  {
+    $userid=$req->userid;
+    $getuserdata=DB::table('users')->where('id',$userid)->get();
+    $username=$getuserdata[0]->name;
+    $usermail=$getuserdata[0]->email;
+    $userpass=$getuserdata[0]->password;
+    $userpic=$getuserdata[0]->profile_picture;
+    $designation=$getuserdata[0]->designation;
+    $city=$getuserdata[0]->city;
+
+    $backenedbaseurl = url('/');
+
+    return response()->json(['username'=>$username,'backenedbaseurl'=>$backenedbaseurl,'usermail'=>$usermail,'userpass'=>$userpass,'userpic'=>$userpic,'designation'=>$designation,'city'=>$city],200);
+
+  }
+  public function updateprofile(Request $req)
+  {
+    $userid=$req->userid;
+    $username=$req->username;
+    $usermail=$req->usermail;
+    $userpass=$req->userpass;
+    $designation=$req->designation;
+    $city=$req->city;
+
+
+if($req->image_changed==1){
+    $userpic=$req->userpic;
+
+    $imageName = time() . '.' . $userpic->getClientOriginalExtension();
+    $userpic->move(public_path('uploads'), $imageName);}
+    else{
+      $imageName=null;
+    }
+           
+            $updateprofile=DB::table('users')->where('id',$userid)->update([
+              'name'=>$username,
+              'email'=>$usermail,
+              'password'=>md5($userpass),
+              'profile_picture'=>$imageName,
+              'designation'=>$designation,
+              'city'=>$city
+            ]);
+
+            return response()->json(['message' => 'Updated successfully'],200);
+
+
+  }
+  public function updatesubjecttime(Request $req)
+  {
+      try {
+          $subject_id = $req->subject_id;
+          $hour = $req->hour;
+          $minute = $req->minute;
+          $second = $req->second;
+  
+          // Format the time
+          $quiz_time = sprintf('%02d:%02d:%02d', $hour, $minute, $second);
+  
+          $updatequiztime = DB::table('subjects')->where('id', $subject_id)->update([
+              'quiz_time' => $quiz_time,
+          ]);
+  
+          if ($updatequiztime) {
+              return response()->json(['message' => 'Time updated successfully'], 200);
+          } else {
+              return response()->json(['message' => 'Failed to update time'], 400);
+          }
+      } catch (\Exception $e) {
+          // Log the exception or handle it based on your requirements
+          return response()->json(['message' => 'Internal server error'], 500);
+      }
+  }
+  public function fetchuserperformance(Request $req)
+  {
+      try {
+          $userid = $req->user_id;
+  
+          // Query to get total questions
+          $totalQuestionsQuery = DB::table('responses')->where('user_id', $userid)->get();
+          $totalQuestions = count($totalQuestionsQuery);
+  
+          // Query to get total subjects
+          $totalSubjectsQuery = DB::table('responses')
+              ->select('subject_id', DB::raw('count(*) as total_subjects'))
+              ->where('user_id', $userid)
+              ->groupBy('subject_id')
+              ->get();
+
+              $correct_responses=DB::table('responses')->join('answers','responses.question_id','answers.question_id') ->where(DB::raw('LOWER(responses.response)'), '=', DB::raw('LOWER(answers.correct_option)'))->where('responses.user_id', $userid)->count();
+             
+          
+          // The result is an array of stdClass objects, so you can access the count like this:
+          // $correct_responses_count = $correct_responses->count();
+           
+  
+          return response()->json(['total_questions' => $totalQuestions, 'total_subjects' => count($totalSubjectsQuery),'total_correct'=>$correct_responses], 200);
+      } catch (\Exception $e) {
+          // Log the error or handle it appropriately
+          return response()->json(['error' => 'Error fetching user performance'], 500);
+      }
+  }
+  public function fetcallrecords()
+  {
+    $total_users=DB::table('users')->where('role',2)->count();
+    $total_subscribers=DB::table('subscribers')->count();
+    $total_subjects=DB::table('subjects')->count();
+    return response()->json(['total_users'=>$total_users,'total_subscribers'=>$total_subscribers, 'total_subjects'=>$total_subjects],200);
   }
   
 }
