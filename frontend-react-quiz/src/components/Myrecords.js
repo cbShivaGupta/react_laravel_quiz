@@ -37,7 +37,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import Sidebar from "./Sidebar";
+// import Sidebar from "./Sidebar";
 
 const MyRecords = () => {
   const uid = localStorage.getItem("user_token");

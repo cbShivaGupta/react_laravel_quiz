@@ -1,14 +1,14 @@
 import react,{ Component } from "react";
 import Header from "./components/Header";
 import Home from "./components/Home";
-import Contact from "./components/Contact";
-import About from "./components/Aboutus";
+// import Contact from "./components/Contact";
+// import About from "./components/Aboutus";
 import Footer from "./components/Footer";
 import Maincontent from "./components/Maincontent";
 import Userlist from "./components/Userlist";
 import Register from "./components/Register";
 import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
+// import Dashboard from "./components/Dashboard";
 import UserDashboard from "./components/UserDashboard";
 import Attemptquiz from "./components/Attemptquiz";
 import Displayquestion from "./components/Displayquestion";
@@ -18,7 +18,7 @@ import Admindashboard from "./components/Admindashboard";
 import Showrecords from "./components/Showrecords";
 import Addquestiontosubject from "./components/Addquestiontosubject";
 import Forgetpassword from "./components/Forgetpassword";
-import Sidebar from "./components/Sidebar";
+// import Sidebar from "./components/Sidebar";
 import Adminsidebar from "./components/Adminsidebar";
 import Entryheader from "./components/Entryheader";
 import Addsubject from "./components/Addsubject";
@@ -42,7 +42,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 
 
-import ChatBox from "./components/ChatBox";
+// import ChatBox from "./components/ChatBox";
 
 // import Logout from "./components/Logout";
 
@@ -68,15 +68,15 @@ function App() {
         {/* <Entryheader/> */}
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="aboutus" element={<About />} />
+          {/* <Route path="contact" element={<Contact />} /> */}
+          {/* <Route path="aboutus" element={<About />} /> */}
           <Route path="userlist" element={<Userlist />} />
           <Route path="register" element={<Register />} />
           <Route path="addquestion" element={<Addquestion />} />
           <Route path="showrecords" element={<Showrecords />} />
           <Route path="userprofile" element={<Userprofile />} />
           <Route path="layoutmain" element={<LayoutMain />} />
-          <Route path="dashboard" element={<Dashboard/>} />
+          {/* <Route path="dashboard" element={<Dashboard/>} /> */}
           <Route path="chart" element={<Chart/>} />
           <Route path="adminchart" element={<Adminchart/>} />
 
@@ -94,7 +94,7 @@ function App() {
           <Route path="myrecords" element={<Myrecords />} />
           <Route path="userdashboard" element={<UserDashboard />} />
 
-          <Route path="chatbox" element={<ChatBox />} />
+          {/* <Route path="chatbox" element={<ChatBox />} /> */}
           <Route path="admindashboard" element={<Admindashboard />} />
           <Route path="forgetpassword" element={<Forgetpassword />} />
           <Route path="addmessage" element={<Addmessage />} />

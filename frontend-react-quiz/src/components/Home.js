@@ -134,9 +134,10 @@ const Home = () => {
       if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
         if (response.status == 202) {
+          if(window.confirm("Are you sure you want to start this quiz")){
           const subject_id = data.subject_id;
           const route = `/quiz/${subject_id}`;
-          navigate(route);
+          navigate(route);}
 
           // alert(data.subject_id+'----'+data.subject_name)
         } else {
@@ -349,17 +350,7 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              {/* <div className="col-lg-3">
-                <div className="count-fact">
-                  <div className="count-icon">
-                    <i class="fa-solid fa-book-open"></i>
-                  </div>
-                  <div className="count-info">
-                    <span className="timer">451</span>
-                    <span className="count-tag">Quizes</span>
-                  </div>
-                </div>
-              </div> */}
+            
             </div>
           </div>
         </div>

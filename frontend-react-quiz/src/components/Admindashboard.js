@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import Sidebar from "./Sidebar";
+// import Sidebar from "./Sidebar";
 import Usersidebar from "./Usersidebar";
 import Adminheader from "./Adminheader";
 import Adminchart from "./Adminchart";

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import Sidebar from "./Sidebar";
+// import Sidebar from "./Sidebar";
 import config from '../config';
 import Dropdown from "react-bootstrap/Dropdown";
 import "../App.css";
