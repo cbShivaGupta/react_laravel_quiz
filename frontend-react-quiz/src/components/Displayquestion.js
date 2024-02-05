@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import Footer from "./Footer";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
-
 import {
   Typography,
   Paper,
@@ -35,14 +33,13 @@ const DisplayQuestion = () => {
   const [error, setError] = useState(null);
   const [selectedValues, setSelectedValues] = useState([]);
   const [submitted, setSubmitted] = useState(false);
-  const [timer, setTimer] = useState([]);
-  const [fulltime, setfullTime] = useState([]);
-
-  const [isVisible, setVisible] = useState(false);
-  const [isbuttonVisible, setisbuttonVisible] = useState(true);
-
   const [timerId, setTimerId] = useState(null);
-  const[time,setTime]=useState('');
+  const [time, setTime] = useState("");
+  const [isVisible, setVisible] = useState(false);
+  const [isAfterSubmit, setAfterSubmit] = useState(false);
+  const [isButtonVisible, setIsButtonVisible] = useState(true);
+  const [fulltime, setFullTime] = useState([]);
+  const selectedValuesRef = useRef(selectedValues);
 
   const fetchQuestions = async () => {
     try {
@@ -53,7 +50,6 @@ const DisplayQuestion = () => {
 
       if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
-
         setQuestions(data);
         setSelectedValues(Array(data.length).fill(""));
       } else {
@@ -73,19 +69,17 @@ const DisplayQuestion = () => {
         `http://127.0.0.1:8000/api/fetchtime?subject=${selectedSubject}`
       );
       const contentType = response.headers.get("content-type");
-  
+
       if (contentType && contentType.includes("application/json")) {
         const timeString = await response.json();
-        setfullTime(timeString)
-        console.log("Fetched quiz time:", timeString); // Add this line for debugging
-  
+        setFullTime(timeString);
+
         let timeArray = timeString.split(":");
         let hour = parseInt(timeArray[0], 10);
         let minute = parseInt(timeArray[1], 10);
         let second = parseInt(timeArray[2], 10);
         let quiztime = (hour * 60 * 60 + minute * 60 + second) * 1000;
-        console.log("Converted quiz time:", quiztime); // Add this line for debugging
-  
+
         setLoading(false);
         return quiztime;
       } else {
@@ -98,111 +92,125 @@ const DisplayQuestion = () => {
     }
   };
 
+  const handleRadioChange = (index, value) => {
+    const updatedValues = [...selectedValues];
+    updatedValues[index] = value;
+    setSelectedValues(updatedValues);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       await fetchQuestions();
-      const quiztime = await fetchTime();
-    
-      setTimer(quiztime);
-      // setTime(quiztime)
     };
 
     fetchData();
   }, [selectedSubject]);
 
-  
-
-  const handleRadioChange = (index, value) => {
-    setSelectedValues((prevSelectedValues) => {
-      const updatedValues = [...prevSelectedValues];
-      updatedValues[index] = value;
-      return updatedValues;
-    });
-  };
+  useEffect(() => {
+    selectedValuesRef.current = selectedValues;
+  }, [selectedValues]);
 
   const startQuiz = async () => {
     try {
-      setisbuttonVisible(false);
-  
-      // Fetch quiz time
       const quiztime = await fetchTime();
       setTime(quiztime);
-  
-      const timerInterval = setInterval(() => {
+      setIsButtonVisible(false);
+      setVisible(true);
+
+      const intervalId = setInterval(() => {
         setTime((prevTime) => {
-          if (prevTime <= 0) {
-            clearInterval(timerInterval);
-            handleSubmit();
+          if (prevTime === 0) {
+            clearInterval(intervalId);
+            handleSubmit(selectedValuesRef.current);
             return 0;
           }
           return prevTime - 1000;
         });
       }, 1000);
-  
-      // Save the timerInterval ID so we can clear it later
-      setTimerId(timerInterval);
-  
-      setVisible(!isVisible);
+      setTimerId(intervalId);
     } catch (error) {
       console.error("Error starting quiz:", error);
     }
   };
-  
-  const getformattedtime=(milliseconds)=>{
-    const totalformattedseconds=parseInt(Math.floor(milliseconds/1000))
-    const totalformattedminutes=parseInt(Math.floor(totalformattedseconds/60))
-    const totalformattedhours=parseInt(Math.floor(totalformattedminutes/60))
-    const loopseconds=parseInt(Math.floor(totalformattedseconds%60))
-    const loopminutes=parseInt(Math.floor(totalformattedminutes%60))
-    const loophours=parseInt(Math.floor(totalformattedhours%24))
-    // return `${milliseconds}`
-    return `${loophours}:${loopminutes}:${loopseconds}`
 
+  const getFormattedTime = (milliseconds) => {
+    const totalFormattedSeconds = parseInt(Math.floor(milliseconds / 1000));
+    const totalFormattedMinutes = parseInt(
+      Math.floor(totalFormattedSeconds / 60)
+    );
+    const totalFormattedHours = parseInt(
+      Math.floor(totalFormattedMinutes / 60)
+    );
+    const loopSeconds = parseInt(Math.floor(totalFormattedSeconds % 60));
+    const loopMinutes = parseInt(Math.floor(totalFormattedMinutes % 60));
+    const loopHours = parseInt(Math.floor(totalFormattedHours % 24));
+    return `${loopHours}:${loopMinutes}:${loopSeconds}`;
+  };
 
+  const handleSubmit = async (selectedValue) => {
+    try {
+      const user_id = localStorage.getItem("userid");
+      const apiUrl = "http://127.0.0.1:8000/api/submitresponse";
+      const selectedVal = selectedValue;
 
-  }
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject_id: selectedSubject,
+          user_id: user_id,
+          response_list: selectedVal,
+        }),
+      });
 
-  const handleSubmit = async () => {
-    clearTimeout(timerId);
+      const responseData = {
+        status: response.status,
+        statusText: response.statusText,
+        data: await response.json(),
+      };
 
-    setSubmitted(true);
-    console.log('text',selectedValues)
-    const user_id = localStorage.getItem("userid");
+      console.log("Response Data:", responseData);
 
-    const apiUrl = "http://127.0.0.1:8000/api/submitresponse";
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        subject_id: selectedSubject,
-        user_id: user_id,
-        response_list: selectedValues,
-      }),
-    });
-
-    const data2 = await response.json();
-    if (response.status === 200) {
-      toastr.success(data2.msg);
-      setSubmitted(false)
+      if (response.status === 200) {
+        toastr.success(responseData.data.msg);
+        setSubmitted(true);
+        setAfterSubmit(true);
+      }
+    } catch (error) {
+      console.error("Error submitting response:", error);
     }
   };
 
   return (
     <>
-     { isbuttonVisible && (<p>You have {fulltime}  to attempt all questions.Click on the button below to start the quiz <br/><Button onClick={startQuiz}>Start Quiz</Button></p>)}
-      {isVisible   && (
+      {isAfterSubmit && (
         <div>
-
+          <p style={{ fontSize: "30px" }}>
+            Your response has been submitted successfully.
+          </p>
+        </div>
+      )}
+      {!isAfterSubmit && isButtonVisible && (
+        <p>
+          You have {fulltime} to attempt all questions. Click on the button
+          below to start the quiz <br />
+          <Button onClick={startQuiz}>Start Quiz</Button>
+        </p>
+      )}
+      {!isAfterSubmit && isVisible && (
+        <div>
           <Grid container>
-            <Grid item xs={1.8}>
+            <Grid item md={1.8}>
               <Sidebar user_id={user_id} />
             </Grid>
-            <Grid item xs={9}>
+            <Grid item md={9}>
               <Container maxWidth="md">
-               <p>Total time remaining:<p style={{fontSize:"30px"}} >{getformattedtime(time)}</p></p>
+                <p>
+                  Total time remaining:
+                  <p style={{ fontSize: "30px" }}>{getFormattedTime(time)}</p>
+                </p>
                 <Paper
                   elevation={3}
                   style={{ padding: "20px", marginTop: "20px" }}
@@ -300,7 +308,7 @@ const DisplayQuestion = () => {
                       <Button
                         variant="contained"
                         color="primary"
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit(selectedValuesRef.current)}
                         disabled={submitted}
                       >
                         Submit
